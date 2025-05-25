@@ -1,0 +1,357 @@
+# Completions based on config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Add blank line between commands
+add_newline = true
+
+# Use custom palette
+palette = 'dune'
+
+# Command line
+[character]
+success_symbol = "[](contrast)"
+error_symbol = "[](error)"
+
+# First thing above command line
+[username]
+format = '[//](contrast) [$user](main) ' # leave space behind for directory
+
+show_always = true
+disabled = false
+
+# Second thing above command line
+[directory]
+truncation_length = 2
+truncate_to_repo = true
+truncation_symbol = '…/'
+
+format = '[//](contrast) [$path](accent) [$read_only]($read_only_style) ' # leave space behind for git
+style = 'main' # Not used in format, exists for fallbacks like repo_root_style
+
+home_symbol = '~'
+
+read_only = ''
+read_only_style = 'error'
+
+disabled = false
+
+[git_branch]
+always_show_remote = false # true = ugly
+
+symbol = ''
+format = '[//](contrast) [$symbol $branch](main) ' # leave space behind for rest of git
+
+truncation_symbol = '…/'
+
+ignore_branches = [] # Don't ignore any branches
+
+# Git Icons (temp)
+#  Icon
+#  Commit
+#  Branch
+
+
+[git_commit]
+commit_hash_length = 7
+format = '[\($hash\)](contrast) '
+
+[git_state]
+rebase = 'REBASING'
+merge = 'MERGING'
+revert = 'REVERTING'
+cherry_pick = 'CHERRY-PICKING'
+bisect = 'BISECTING'
+am = 'AM'
+am_or_rebase = 'AM/REBASE'
+
+format = '[\($state\)](accent)'
+
+[git_metrics]
+disabled = true
+
+[git_status]
+conflicted = ''
+ahead = '⇡{$count}'
+behind = '⇣{$count}'
+diverged = '⇕⇡{$ahead_count}⇣{$behind_count}'
+up_to_date = ''
+untracked = '󰌺'
+stashed = '$'
+modified = '󱇨'
+staged = '[++\($count\)](success)'
+renamed = '»'
+deleted = ''
+typechanged = '' # idk what this is honestly
+
+format = '[\[[$all_status$ahead_behind](bold accent)\]](contrast)'
+
+[palettes.dune]
+main = '#ca6f1a' 
+accent = '#935012'
+contrast = '#454545'
+error = '#ee2e2e'
+success = '#00cd1a'
+
+[aws]
+disabled = true
+
+[azure]
+disabled = true
+
+[battery]
+disabled = true
+
+[buf]
+disabled = true
+
+[bun]
+disabled = true
+
+[c]
+disabled = true
+
+[cpp]
+disabled = true
+
+[cmake]
+disabled = true
+
+[cobol]
+disabled = true
+
+[cmd_duration]
+disabled = true
+
+[conda]
+disabled = true
+
+[container]
+disabled = true
+
+[crystal]
+disabled = true
+
+[daml]
+disabled = true
+
+[dart]
+disabled = true
+
+[deno]
+disabled = true
+
+[direnv]
+disabled = true
+
+[docker_context]
+disabled = true
+
+[dotnet]
+disabled = true
+
+[elixir]
+disabled = true
+
+[elm]
+disabled = true
+
+[env_var]
+disabled = true
+
+[erlang]
+disabled = true
+
+[fennel]
+disabled = true
+
+[fill]
+disabled = true
+
+[fossil_branch]
+disabled = true
+
+[fossil_metrics]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[gleam]
+disabled = true
+
+[golang]
+disabled = true
+
+[guix_shell]
+disabled = true
+
+[gradle]
+disabled = true
+
+[haskell]
+disabled = true
+
+[haxe]
+disabled = true
+
+[helm]
+disabled = true
+
+[hostname]
+disabled = true
+
+[java]
+disabled = true
+
+[jobs]
+disabled = true
+
+[julia]
+disabled = true
+
+[kotlin]
+disabled = true
+
+[kubernetes]
+disabled = true
+
+[localip]
+disabled = true
+
+[lua]
+disabled = true
+
+[memory_usage]
+disabled = true
+
+[meson]
+disabled = true
+
+[hg_branch]
+disabled = true
+
+[mise]
+disabled = true
+
+[mojo]
+disabled = true
+
+[nats]
+disabled = true
+
+[netns]
+disabled = true
+
+[nim]
+disabled = true
+
+[nix_shell]
+disabled = true
+
+[nodejs]
+disabled = true
+
+[ocaml]
+disabled = true
+
+[odin]
+disabled = true
+
+[opa]
+disabled = true
+
+[openstack]
+disabled = true
+
+[os]
+disabled = true
+
+[package]
+disabled = true
+
+[perl]
+disabled = true
+
+[php]
+disabled = true
+
+[pijul_channel]
+disabled = true
+
+[pixi]
+disabled = true
+
+[pulumi]
+disabled = true
+
+[purescript]
+disabled = true
+
+[python]
+disabled = true
+
+[quarto]
+disabled = true
+
+[rlang]
+disabled = true
+
+[raku]
+disabled = true
+
+[red]
+disabled = true
+
+[ruby]
+disabled = true
+
+[rust]
+disabled = true
+
+[scala]
+disabled = true
+
+[shell]
+disabled = true
+
+[shlvl]
+disabled = true
+
+[singularity]
+disabled = true
+
+[solidity]
+disabled = true
+
+[spack]
+disabled = true
+
+[status]
+disabled = true
+
+[sudo]
+disabled = true
+
+[swift]
+disabled = true
+
+[terraform]
+disabled = true
+
+[time]
+disabled = true
+
+[typst]
+disabled = true
+
+[vagrant]
+disabled = true
+
+[vlang]
+disabled = true
+
+[vcsh]
+disabled = true
+
+[zig]
+disabled = true
