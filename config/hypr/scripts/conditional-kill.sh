@@ -1,7 +1,6 @@
 #!/bin/bash
 
 active_window=$(hyprctl --batch "j/activewindow" | jq -r ".class")
-echo $active_window > "$HOME/output.log"
 
 hide_apps=("Steam" "vesktop")
 
