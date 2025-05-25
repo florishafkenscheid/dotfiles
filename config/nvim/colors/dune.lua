@@ -61,6 +61,8 @@ Underlined = {underline = true},
 Visual = {bg = "#5C4E3D"},
 Winseparator = {fg = "#A05908"},
     -- PATCH_CLOSE
+    -- Added by me as needed
+htmlEndTag = {link= "Function"},
 }
 
 vim.cmd("highlight clear")
