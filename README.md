@@ -37,7 +37,7 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 	- [x] treesitter
 	- [x] web-devicons
 - [ ] Kitty settings	    ~/.config/kitty
-~~- [ ] ! Waybar		    ~/.config/waybar~~ # Replaced by EWW ↩️ 
+- [ ] <s>! Waybar		    ~/.config/waybar</s> // Replaced by EWW ↩️ 
 - [ ] EWW			        ~/.config/eww/* 
 - [x] tuigreet		        /etc/greetd/config.toml
 - [ ] fastfetch		        ~/.config/fastfetch/config.jsonc
