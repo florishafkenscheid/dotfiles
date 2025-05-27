@@ -35,6 +35,6 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - [ ] fastfetch		        ~/.config/fastfetch/config.jsonc
 - [ ] rofi			        ~/.config/rofi/config.rasi
 - [ ] mako                  ~/.config/mako/config
-- [ ] mopidy ↩️ ⏳
-- [ ] mpd ↩️ ⏳
-- [ ] rmpc ⏳
+- [ ] <s>mopidy ↩️</s> // Good luck if you want to use spotify
+- [ ] <s>mpd ↩️</s>
+- [ ] <s>rmpc </s>
