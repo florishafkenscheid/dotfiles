@@ -14,4 +14,7 @@ return {
     -- File Browsing & Navigation
     require("blousy.nvim-tree"),
     require("blousy.telescope"),
+
+    -- Utilities
+    require("blousy.git-blame"),
 }
