@@ -11,17 +11,9 @@ With "bare bones", I mean a lean system focussing on functionality and minimal o
 The theme is based on the Dune movies, focussing on the vibrant oranges used in the cinematography.
 
 ## Progress
-#### GitHub Repos
-- [x] hyprland-community/hyprls
-
-#### Hyprland Wiki
-- [x] Useful-Utilities/Hypr-Ecosystem
-- [x] Useful-Utilities/App-Clients
-- [x] Useful-Utilities/Wallpapers (hyprpaper)
-
-#### Setup
 > [!NOTE]
 > ↩️ means somehow linked to the next point, ⏳ means currently WIP.
+
 - [x] Keybinds		        ~/.config/hypr/hyprland.conf
 - [x] Zsh			        ~/.zshrc
 - [x] Starship		        ~/.config/starship.toml
