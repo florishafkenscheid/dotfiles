@@ -17,10 +17,10 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - [x] Keybinds		        ~/.config/hypr/hyprland.conf
 - [x] Zsh			        ~/.zshrc
 - [x] Starship		        ~/.config/starship.toml
-- [ ] NeoVim ⏳		        ~/.config/nvim
+- [x] NeoVim		        ~/.config/nvim
 	- [x] lazy
 	- [x] lspconfig
-	- [ ] lualine ⏳
+	- [x] lualine
 	- [x] lush
 	- [x] mason
 	- [x] mason-lspconfig
@@ -35,6 +35,6 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - [ ] fastfetch		        ~/.config/fastfetch/config.jsonc
 - [ ] rofi			        ~/.config/rofi/config.rasi
 - [ ] mako                  ~/.config/mako/config
-- [ ] mopidy ↩️
-- [ ] mpd ↩️
-- [ ] rmpc
+- [ ] mopidy ↩️ ⏳
+- [ ] mpd ↩️ ⏳
+- [ ] rmpc ⏳
