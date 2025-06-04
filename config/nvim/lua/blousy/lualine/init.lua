@@ -9,10 +9,10 @@ return {
         local dune_lualine_theme = {
             normal = {
                 a = { fg = '#000000', bg = '#D77F00' },
-                b = { fg = '#BBBBBB', bg = 'none' },
+                b = { fg = '#BBBBBB', bg = '#000000' },
                 c = { fg = '#DDDDDD', bg = 'none' },
                 x = { fg = '#BBBBBB', bg = 'none' },
-                y = { fg = '#DDDDDD', bg = 'none' },
+                y = { fg = '#DDDDDD', bg = '#000000' },
                 z = { fg = '#000000', bg = '#D77F00' },
             },
             insert = {
@@ -45,24 +45,29 @@ return {
             }
         }
 
+        ---@diagnostic disable: undefined-global
+        vim.api.nvim_set_hl(0, 'LualineSeparatorSpecial', { fg = '#D77F00', bg = '#000000' })
 
         local git_blame = require('gitblame')
         require('lualine').setup({
             options = {
                 theme = dune_lualine_theme,
+                component_separators = { left = '', right = '' },
+                section_separators = { left = '', right = '' },
             },
             sections = {
-                lualine_a = {'mode'},
-                lualine_b = {'branch', 'diff'},
+                lualine_a = { { 'mode', separator = { right = '' } } },
+                lualine_b = { 'branch', 'diff' },
                 lualine_c = {
                     {
                         git_blame.get_current_blame_text,
-                        cond = git_blame.is_blame_text_available
+                        cond = git_blame.is_blame_text_available,
+                        separator = { left = '%#LualineSeparatorSpecial#%*' }
                     }
                 },
                 lualine_x = {'diagnostics', 'filetype'},
-                lualine_y = {'filename'},
-                lualine_z = {'location'},
+                lualine_y = { { 'filename', separator = { left = '%#LualineSeparatorSpecial#╱%*', } } },
+                lualine_z = { { 'location', separator = { left = '' } } },
             },
             inactive_sections = {
 
