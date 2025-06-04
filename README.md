@@ -38,3 +38,4 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - [ ] <s>mopidy ↩️</s> // Good luck if you want to use spotify
 - [ ] <s>mpd ↩️</s>
 - [ ] <s>rmpc </s>
+- [ ] spotify-player        ~/.config/spotify-player/app.toml
