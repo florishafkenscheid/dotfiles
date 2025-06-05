@@ -35,7 +35,18 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - [ ] fastfetch		        ~/.config/fastfetch/config.jsonc
 - [ ] rofi			        ~/.config/rofi/config.rasi
 - [ ] mako                  ~/.config/mako/config
-- [ ] <s>mopidy ↩️</s> // Good luck if you want to use spotify
+- [ ] <s>mopidy ↩️</s>      // Good luck if you want to use spotify
 - [ ] <s>mpd ↩️</s>
 - [ ] <s>rmpc </s>
 - [ ] spotify-player        ~/.config/spotify-player/app.toml
+
+### EWW
+> [!NOTE]
+> Some ideas on what to display using EWW as the top bar.
+- CPU & GPU usage in %
+    - Clickable for temps?
+- Memory Usage (percentage? gb free?)
+- Mullvad status
+- Time
+- Spaces in middle or left, with name or icon of active window(s)
+- Spotify now playing
