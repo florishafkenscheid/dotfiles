@@ -1,2 +1,33 @@
-(eww
-    (include ""))
+; Includes
+(include "./widgets/bar.yuck")
+
+; Defining the top bars
+(defwindow bar-primary
+           :monitor '["<primary>", "DP-2", 0]'
+           :geometry (geometry :x "0%"
+                               :y "0%"
+                               :width "100%"
+                               :height "2.75%" ; 1080 * 0.0275 = ~30px
+                               :anchor "top center"
+                     )
+           :stacking "fg"
+           :exclusive "true"
+           :focusable "ondemand"
+           :namespace "primary-bar"
+           "Primary Bar"
+)
+
+(defwindow bar-secondary
+           :monitor '["HDMI-A-1", 1]'
+           :geometry (geometry :x "0%"
+                               :y "0%"
+                               :width "100%"
+                               :height "2%" ; 2160 * 0.02 = ~43px
+                               :anchor "top center"
+                     )
+           :stacking "fg"
+           :exclusive "true"
+           :focusable "ondemand"
+           :namespace "secondary-bar"
+           "Secondary Bar"
+)
