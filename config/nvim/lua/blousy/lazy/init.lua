@@ -4,6 +4,7 @@ return {
     require("blousy.mason"),
     require("blousy.mason-lspconfig"),
     require("blousy.treesitter"),
+    require("blousy.yuck"),
 
     -- Aesthetics
     require("blousy.lualine"),
