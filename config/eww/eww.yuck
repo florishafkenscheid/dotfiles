@@ -1,5 +1,11 @@
 ; Includes
 (include "./widgets/bar.yuck")
+(include "./widgets/clock.yuck")
+
+; Clock vars & polls
+(defvar clock_is_hovered false)
+(defpoll gettime_long :interval "1s" "date +'%H:%M:%S'")
+(defpoll gettime_short :interval "1s" "date +'%H:%M'")
 
 ; Defining the top bars
 (defwindow bar-primary
@@ -14,7 +20,7 @@
            :exclusive "true"
            :focusable "ondemand"
            :namespace "primary-bar"
-           "Primary Bar"
+           (bar)
 )
 
 (defwindow bar-secondary

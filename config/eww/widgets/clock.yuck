@@ -1,0 +1,9 @@
+(defwidget clock []
+  (eventbox
+    :onhover "${EWW_CMD} update clock_is_hovered=true"
+    :onhoverlost "${EWW_CMD} update clock_is_hovered=false"
+    (label
+      :text "${clock_is_hovered ? gettime_long : gettime_short }"
+    )
+  )
+)
