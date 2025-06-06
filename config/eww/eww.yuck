@@ -3,6 +3,7 @@
 (include "./widgets/clock.yuck")
 (include "./widgets/cpu_gpu.yuck")
 (include "./widgets/memory.yuck")
+(include "./widgets/mullvad.yuck")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Clock vars & polls
@@ -19,20 +20,8 @@
 ; Memory usage
 (defvar active_memory_monitor -1)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+; Mullvad status
+(defpoll mullvad_status :interval "1s" "mullvad status -j | jq -r '.state'")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; CPU && GPU temps window, add more if more monitors

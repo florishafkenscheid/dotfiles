@@ -26,7 +26,7 @@
       :spacing 20
 
       ;(now_playing)
-      ;(mullvad)
+      (mullvad)
       (clock)
     )
   )
