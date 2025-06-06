@@ -15,24 +15,24 @@
 ; CPU && GPU vars & polls
 ; cpu_percent is a magic value, no need to get it ourselves
 (defpoll gpu_percent :interval "2s" "radeontop -d - -l 1 | grep -o 'gpu [0-9]*' | cut -d ' ' -f 2")
-(defvar active_temps_monitor -1) ; Make two instances of the temp popup, only show the one one the current monitor
+(defvar show_temps false) ; Make two instances of the temp popup, only show the one one the current monitor
 (defpoll temps_string :interval "2s" "sensors -j | jq -r '\"CPU: \\(.[\"k10temp-pci-00c3\"].Tctl.temp1_input | round)°C\\nGPU: \\(.[\"amdgpu-pci-0300\"].junction.temp2_input | round)°C\"'")
 
 ; Memory usage
-(defvar active_memory_monitor -1)
+(defvar show_memory false)
 
 ; Mullvad status
 (defpoll mullvad_status :interval "1s" "mullvad status -j | jq -r '.state'")
 
 ; Now playing (using playerctl, limited to spotify_player)
-(defvar active_song_monitor -1)
+(defvar show_song false)
 (deflisten now_playing :initial ""
   "playerctl -p spotify_player --follow metadata --format '{{title}} \\n {{artist}}'"
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; CPU && GPU temps window, add more if more monitors
-(defwindow temps_popup_0
+(defwindow temps_popup
            :monitor 0
            :geometry (geometry :x "0%"
                                :y "0%"
@@ -41,26 +41,7 @@
            :focusable "false"
   (revealer 
     :transition "slidedown"
-    :reveal {active_temps_monitor == 0}
-    :duration "175ms"
-    (box
-      :style "background-color: red"
-      :class "island temps-popup-content hardware-popup-content"
-      (label :text temps_string)
-    )
-  )
-)
-
-(defwindow temps_popup_1
-           :monitor 1
-           :geometry (geometry :x "0%"
-                               :y "0%"
-                     )
-           :stacking "overlay"
-           :focusable "false"
-  (revealer 
-    :transition "slidedown"
-    :reveal {active_temps_monitor == 1}
+    :reveal show_temps
     :duration "175ms"
     (box
       :style "background-color: red"
@@ -72,7 +53,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Memory Usage window, same as CPU && GPU temps window
-(defwindow memory_popup_0
+(defwindow memory_popup
            :monitor 0
            :geometry (geometry :x "4%"
                                :y "0%"
@@ -81,26 +62,7 @@
            :focusable "false"
   (revealer 
     :transition "slidedown"
-    :reveal {active_memory_monitor == 0}
-    :duration "175ms"
-    (box
-      :style "background-color: red"
-      :class "island temps-popup-content hardware-popup-content"
-      (label
-        :text "Used: ${round(EWW_RAM.used_mem / 1073741824, 1)}GB\\nTotal: ${round(EWW_RAM.total_mem / 1073741824, 1)}GB"
-      )
-    )
-  )
-)
-
-(defwindow memory_popup_1
-           :monitor 1
-           :geometry (geometry :x "4%" :y "0%")
-           :stacking "overlay"
-           :focusable "false"
-  (revealer 
-    :transition "slidedown"
-    :reveal {active_memory_monitor == 1}
+    :reveal show_memory 
     :duration "175ms"
     (box
       :style "background-color: red"
@@ -114,7 +76,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Spotify popup
-(defwindow song_popup_0
+(defwindow song_popup
   :monitor 0
   :geometry (geometry :x "89.5%" :y "1%") 
   :stacking "overlay"
@@ -122,7 +84,7 @@
   :anchor "top right"
   (revealer
     :transition "slidedown"
-    :reveal {active_song_monitor == 0}
+    :reveal show_song 
     :duration "175ms"
     (box :class "island song-popup-content"
       (label
@@ -136,31 +98,9 @@
   )
 )
 
-(defwindow song_popup_1
-           :monitor 1
-           :geometry (geometry :x "0" :y "35px")
-           :stacking "overlay"
-           :focusable "false"
-           :halign "end"
-  (revealer 
-    :transition "slidedown"
-    :reveal {active_song_monitor == 1}
-    :duration "175ms"
-      (box :class "island song-popup-content"
-        (label 
-          :text now_playing
-          :limit-width 50
-          :justify "right"
-          :xalign 1
-          :wrap-mode "word"
-          :css ".song-popup-content {max-width: 18%; min-width: 5%}"
-        )
-      )
-   )
-)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Defining the top bars
-(defwindow bar-primary
+(defwindow bar
            :monitor '["<primary>", "DP-2", 0]'
            :geometry (geometry :x "0%"
                                :y "0%"
@@ -172,20 +112,5 @@
            :exclusive "true"
            :focusable "ondemand"
            :namespace "primary-bar"
-           (bar)
-)
-
-(defwindow bar-secondary
-           :monitor '["HDMI-A-1", 1]'
-           :geometry (geometry :x "0%"
-                               :y "0%"
-                               :width "100%"
-                               :height "2%" ; 2160 * 0.02 = ~43px
-                               :anchor "top center"
-                     )
-           :stacking "fg"
-           :exclusive "true"
-           :focusable "ondemand"
-           :namespace "secondary-bar"
            (bar)
 )

@@ -1,7 +1,7 @@
 (defwidget now_playing []
   (eventbox
-    :onhover "${EWW_CMD} update active_song_monitor=`/home/blousy/.dotfiles/config/eww/scripts/get-active-monitor.sh`"
-    :onhoverlost "${EWW_CMD} update active_song_monitor=-1"
+    :onhover "${EWW_CMD} update show_song=true" 
+    :onhoverlost "${EWW_CMD} update show_song=false"
     (label
       :text " 󰓇 "
     )
