@@ -4,6 +4,7 @@
 (include "./widgets/cpu_gpu.yuck")
 (include "./widgets/memory.yuck")
 (include "./widgets/mullvad.yuck")
+(include "./widgets/now_playing.yuck")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Clock vars & polls
@@ -22,6 +23,12 @@
 
 ; Mullvad status
 (defpoll mullvad_status :interval "1s" "mullvad status -j | jq -r '.state'")
+
+; Now playing (using playerctl, limited to spotify_player)
+(defvar active_song_monitor -1)
+(deflisten now_playing :initial ""
+  "playerctl -p spotify_player --follow metadata --format '{{title}} \\n {{artist}}'"
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; CPU && GPU temps window, add more if more monitors
@@ -88,9 +95,7 @@
 
 (defwindow memory_popup_1
            :monitor 1
-           :geometry (geometry :x "4%"
-                               :y "0%"
-                     )
+           :geometry (geometry :x "4%" :y "0%")
            :stacking "overlay"
            :focusable "false"
   (revealer 
@@ -107,6 +112,52 @@
   )
 )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Spotify popup
+(defwindow song_popup_0
+  :monitor 0
+  :geometry (geometry :x "89.5%" :y "1%") 
+  :stacking "overlay"
+  :focusable "false"
+  :anchor "top right"
+  (revealer
+    :transition "slidedown"
+    :reveal {active_song_monitor == 0}
+    :duration "175ms"
+    (box :class "island song-popup-content"
+      (label
+        :text now_playing
+        ;:wrap true
+        :wrap-mode "word"
+        :xalign 0.5
+        :justify "center"
+      )
+    )
+  )
+)
+
+(defwindow song_popup_1
+           :monitor 1
+           :geometry (geometry :x "0" :y "35px")
+           :stacking "overlay"
+           :focusable "false"
+           :halign "end"
+  (revealer 
+    :transition "slidedown"
+    :reveal {active_song_monitor == 1}
+    :duration "175ms"
+      (box :class "island song-popup-content"
+        (label 
+          :text now_playing
+          :limit-width 50
+          :justify "right"
+          :xalign 1
+          :wrap-mode "word"
+          :css ".song-popup-content {max-width: 18%; min-width: 5%}"
+        )
+      )
+   )
+)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Defining the top bars
 (defwindow bar-primary

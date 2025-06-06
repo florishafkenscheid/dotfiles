@@ -1,4 +1,5 @@
 #!/bin/sh
+
 MULLVAD_STATUS=$(mullvad status -j | jq -r '.state')
 
 if [ "$MULLVAD_STATUS" = "connected" ]; then
