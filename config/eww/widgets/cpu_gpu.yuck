@@ -1,0 +1,19 @@
+(defwidget cpu_gpu []
+  (eventbox
+    :onhover "${EWW_CMD} update active_temps_monitor=`/home/blousy/.dotfiles/config/eww/scripts/get-active-monitor.sh`"
+    :onhoverlost "${EWW_CMD} update active_temps_monitor='-1'"
+	(box :class "cpu-gpu-widget"
+	     :orientation "h"
+	     :spacing 2
+	     :valign "center"
+	  (label
+	    :class "cpu-usage"
+	    :text "󰍛  ${ceil(EWW_CPU.avg)}%"
+	  )
+	  (label
+	    :class "gpu-usage"
+	    :text "  ${gpu_percent}%"
+	  )
+    )
+  )
+)

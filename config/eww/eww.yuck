@@ -1,12 +1,120 @@
 ; Includes
 (include "./widgets/bar.yuck")
 (include "./widgets/clock.yuck")
+(include "./widgets/cpu_gpu.yuck")
+(include "./widgets/memory.yuck")
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Clock vars & polls
 (defvar clock_is_hovered false)
 (defpoll gettime_long :interval "1s" "date +'%H:%M:%S'")
 (defpoll gettime_short :interval "1s" "date +'%H:%M'")
 
+; CPU && GPU vars & polls
+; cpu_percent is a magic value, no need to get it ourselves
+(defpoll gpu_percent :interval "2s" "radeontop -d - -l 1 | grep -o 'gpu [0-9]*' | cut -d ' ' -f 2")
+(defvar active_temps_monitor -1) ; Make two instances of the temp popup, only show the one one the current monitor
+(defpoll temps_string :interval "2s" "sensors -j | jq -r '\"CPU: \\(.[\"k10temp-pci-00c3\"].Tctl.temp1_input | round)°C\\nGPU: \\(.[\"amdgpu-pci-0300\"].junction.temp2_input | round)°C\"'")
+
+; Memory usage
+(defvar active_memory_monitor -1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; CPU && GPU temps window, add more if more monitors
+(defwindow temps_popup_0
+           :monitor 0
+           :geometry (geometry :x "0%"
+                               :y "0%"
+                     )
+           :stacking "overlay"
+           :focusable "false"
+  (revealer 
+    :transition "slidedown"
+    :reveal {active_temps_monitor == 0}
+    :duration "175ms"
+    (box
+      :style "background-color: red"
+      :class "island temps-popup-content"
+      (label :text temps_string)
+    )
+  )
+)
+
+(defwindow temps_popup_1
+           :monitor 1
+           :geometry (geometry :x "0%"
+                               :y "0%"
+                     )
+           :stacking "overlay"
+           :focusable "false"
+  (revealer 
+    :transition "slidedown"
+    :reveal {active_temps_monitor == 1}
+    :duration "175ms"
+    (box
+      :style "background-color: red"
+      :class "island temps-popup-content"
+      (label :text temps_string)
+    )
+  )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Memory Usage window, same as CPU && GPU temps window
+(defwindow memory_popup_0
+           :monitor 0
+           :geometry (geometry :x "4%"
+                               :y "0%"
+                     )
+           :stacking "overlay"
+           :focusable "false"
+  (revealer 
+    :transition "slidedown"
+    :reveal {active_memory_monitor == 0}
+    :duration "175ms"
+    (box
+      :style "background-color: red"
+      :class "island temps-popup-content"
+      (label :text "Used: ${round(EWW_RAM.used_mem / 1073741824, 1)}GB\\nTotal: ${round(EWW_RAM.total_mem / 1073741824, 1)}GB")
+    )
+  )
+)
+
+(defwindow memory_popup_1
+           :monitor 1
+           :geometry (geometry :x "4%"
+                               :y "0%"
+                     )
+           :stacking "overlay"
+           :focusable "false"
+  (revealer 
+    :transition "slidedown"
+    :reveal {active_memory_monitor == 1}
+    :duration "175ms"
+    (box
+      :style "background-color: red"
+      :class "island temps-popup-content"
+      (label :text "Used: ${round(EWW_RAM.used_mem / 1073741824, 1)}GB\\nTotal: ${round(EWW_RAM.total_mem / 1073741824, 1)}GB")
+    )
+  )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Defining the top bars
 (defwindow bar-primary
            :monitor '["<primary>", "DP-2", 0]'
@@ -35,5 +143,5 @@
            :exclusive "true"
            :focusable "ondemand"
            :namespace "secondary-bar"
-           "Secondary Bar"
+           (bar)
 )

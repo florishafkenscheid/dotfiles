@@ -7,8 +7,8 @@
       :space-evenly false
       :spacing 20
 
-      ;(cpu_gpu)
-      ;(memory)
+      (cpu_gpu)
+      (memory)
     )
 
     (box

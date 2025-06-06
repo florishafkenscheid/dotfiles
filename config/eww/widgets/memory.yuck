@@ -1,0 +1,12 @@
+(defwidget memory []
+  (eventbox
+    :onhover "${EWW_CMD} update active_memory_monitor=`/home/blousy/.dotfiles/config/eww/scripts/get-active-monitor.sh`"
+    :onhoverlost "${EWW_CMD} update active_memory_monitor=-1"
+    (box :class "memory-widget"
+         :orientation "h"
+         :spacing 12
+         :valign "center"
+      (label :text "   ${round(EWW_RAM.used_mem_perc, 0)}%")
+    )
+  )
+)
