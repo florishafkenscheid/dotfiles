@@ -5,6 +5,7 @@
 (include "./widgets/memory.yuck")
 (include "./widgets/mullvad.yuck")
 (include "./widgets/now_playing.yuck")
+(include "./widgets/workspaces.yuck")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Clock vars & polls
@@ -30,15 +31,18 @@
   "playerctl -p spotify_player --follow metadata --format '{{title}} \\n {{artist}}'"
 )
 
+; Get workspaces and if they're active or not
+(defpoll workspaces :interval "1s" "hyprctl workspaces -j | jq --argjson active \"$(hyprctl activeworkspace -j | jq '.id')\" '[.[] | select(.id > 0 and (index(\"special:\") | not)) | {id, name, active: (.id == $active)}]'")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; CPU && GPU temps window, add more if more monitors
 (defwindow temps_popup
-           :monitor 0
-           :geometry (geometry :x "0%"
-                               :y "0%"
-                     )
-           :stacking "overlay"
-           :focusable "false"
+  :monitor 0
+  :geometry (geometry :x "0%"
+                      :y "0%"
+            )
+  :stacking "overlay"
+  :focusable "false"
   (revealer 
     :transition "slidedown"
     :reveal show_temps
@@ -54,12 +58,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Memory Usage window, same as CPU && GPU temps window
 (defwindow memory_popup
-           :monitor 0
-           :geometry (geometry :x "4%"
-                               :y "0%"
-                     )
-           :stacking "overlay"
-           :focusable "false"
+  :monitor 0
+  :geometry (geometry :x "4%"
+                      :y "0%"
+            )
+  :stacking "overlay"
+  :focusable "false"
   (revealer 
     :transition "slidedown"
     :reveal show_memory 
@@ -78,7 +82,9 @@
 ; Spotify popup
 (defwindow song_popup
   :monitor 0
-  :geometry (geometry :x "89.5%" :y "1%") 
+  :geometry (geometry :x "80%" 
+                      :y "1%"
+            ) 
   :stacking "overlay"
   :focusable "false"
   :anchor "top right"

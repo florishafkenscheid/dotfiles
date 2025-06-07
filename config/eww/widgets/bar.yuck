@@ -15,7 +15,7 @@
       :class "island middle"
       :halign "center"
 
-      ;(workspaces)
+      (workspaces)
     )
 
     (box
