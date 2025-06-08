@@ -3,7 +3,8 @@
     :onhover "${EWW_CMD} update show_song=true" 
     :onhoverlost "${EWW_CMD} update show_song=false"
     (label
-      :text " 󰓇 "
+      :class "island spotify"
+      :text "󰓇"
     )
   )
 )

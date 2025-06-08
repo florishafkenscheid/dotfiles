@@ -1,33 +1,35 @@
 (defwidget bar []
-  (centerbox :orientation "h"
-    (box 
-      :class "island left" 
-      :halign "start" 
-      :orientation "h"
-      :space-evenly false
-      :spacing 20
-
-      (cpu_gpu)
-      (memory)
-    )
-
-    (box
-      :class "island middle"
-      :halign "center"
-
-      (workspaces)
-    )
-
-    (box
-      :class "island right"
-      :halign "end"
-      :orientation "h"
-      :space-evenly false
-      :spacing 20
-
-      (now_playing)
-      (mullvad)
-      (clock)
+  (box :class "bar-container"
+    (centerbox :orientation "h"
+      (box 
+        :class "left" 
+        :halign "start" 
+        :orientation "h"
+        :space-evenly false
+        :spacing 10
+  
+        (cpu_gpu)
+        (memory)
+      )
+  
+      (box
+        :class "middle"
+        :halign "center"
+  
+        (workspaces)
+      )
+  
+      (box
+        :class "right"
+        :halign "end"
+        :orientation "h"
+        :space-evenly false
+        :spacing 10
+  
+        (now_playing)
+        (mullvad)
+        (clock)
+      )
     )
   )
 )

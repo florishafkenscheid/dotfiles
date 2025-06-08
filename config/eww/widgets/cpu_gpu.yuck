@@ -2,17 +2,22 @@
   (eventbox
     :onhover "${EWW_CMD} update show_temps=true" 
     :onhoverlost "${EWW_CMD} update show_temps=false" 
-	(box :class "cpu-gpu-widget"
+	(box :class "cpu-gpu-widget island"
 	     :orientation "h"
 	     :spacing 2
 	     :valign "center"
+         :space-evenly false
 	  (label
 	    :class "cpu-usage"
-	    :text "󰍛  ${ceil(EWW_CPU.avg)}%"
+	    :text "󰍛  ${ceil(EWW_CPU.avg) ?: 0}% "
+        :width 55
+        :xalign 0
 	  )
 	  (label
 	    :class "gpu-usage"
-	    :text "  ${gpu_percent}%"
+	    :text "  ${gpu_percent ?: 0}%"
+        :width 55
+        :xalign 1
 	  )
     )
   )

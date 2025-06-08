@@ -1,7 +1,7 @@
 (defwidget mullvad []
   (button
     :onclick "/home/blousy/.dotfiles/config/eww/scripts/toggle-mullvad.sh"
-    :class "mullvad-widget ${mullvad_status}" 
+    :class "mullvad ${mullvad_status} island" 
     (box :orientation "h"
       (label :text "󰳌" :visible "${mullvad_status == "connected"}")
       (label :text "󰦜" :visible "${mullvad_status == "disconnected"}")
