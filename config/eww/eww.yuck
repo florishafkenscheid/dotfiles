@@ -32,7 +32,7 @@
 )
 
 ; Get workspaces and if they're active or not
-(defpoll workspaces :interval "1s" "hyprctl workspaces -j | jq --argjson active \"$(hyprctl activeworkspace -j | jq '.id')\" '[.[] | select(.id > 0 and (index(\"special:\") | not)) | {id, name, active: (.id == $active)}]'")
+(defpoll workspace_labels :interval "1s" "/home/blousy/.dotfiles/config/eww/scripts/get-workspace-labels.sh")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; CPU && GPU temps window, add more if more monitors

@@ -1,10 +1,22 @@
 (defwidget workspaces []
   (box :orientation "h" :spacing 8
-    (for workspace in workspaces
+    (for workspace in workspace_labels
       (button
         :class "workspace-btn${workspace.active ? " active" : ""}"
         :onclick "hyprctl dispatch workspace ${workspace.id}"
-        (label :text "${workspace.name}")
+        (box :orientation "h" :spacing 1
+          (label :text "${workspace.name}")
+          
+          ; can't use another for loop on icon in workspace.icons so limit to 3 icons max, if it really needs to be dynamic use a (literal) and make workspace.icon yuck code
+          (box 
+            :orientation "h"
+            :spacing 1
+            :visible {workspace.icons != "[]"}
+            (label :text {workspace.icons[0] ?: ""})
+            (label :text {workspace.icons[1] ?: ""})
+            (label :text {workspace.icons[2] ?: ""})
+          )
+        )
       )
     )
   )
