@@ -17,7 +17,7 @@
 ; cpu_percent is a magic value, no need to get it ourselves
 (defpoll gpu_percent :interval "2s" "radeontop -d - -l 1 | grep -o 'gpu [0-9]*' | cut -d ' ' -f 2")
 (defvar show_temps false) ; Make two instances of the temp popup, only show the one one the current monitor
-(defpoll temps_string :interval "2s" "sensors -j | jq -r '\"CPU: \\(.[\"k10temp-pci-00c3\"].Tctl.temp1_input | round)°C\\nGPU: \\(.[\"amdgpu-pci-0300\"].junction.temp2_input | round)°C\"'")
+(defpoll temps_string :interval "2s" "sensors -j | jq -r '\" \\(.[\"k10temp-pci-00c3\"].Tctl.temp1_input | round)    \\(.[\"amdgpu-pci-0300\"].junction.temp2_input | round) \"'")
 
 ; Memory usage
 (defvar show_memory false)
@@ -27,9 +27,8 @@
 
 ; Now playing (using playerctl, limited to spotify_player)
 (defvar show_song false)
-(deflisten now_playing :initial ""
-  "playerctl -p spotify_player --follow metadata --format '{{title}} \\n {{artist}}'"
-)
+(deflisten now_playing_title :initial "No song has been played yet" "playerctl -p spotify_player --follow metadata --format '{{title}}'")
+(deflisten now_playing_artist :initial "No artist to accompany this title" "playerctl -p spotify_player --follow metadata --format '{{artist}}'") 
 
 ; Get workspaces and if they're active or not
 (defpoll workspace_labels :interval "1s" "/home/blousy/.dotfiles/config/eww/scripts/get-workspace-labels.sh")
@@ -38,7 +37,7 @@
 ; CPU && GPU temps window, add more if more monitors
 (defwindow temps_popup
   :monitor 0
-  :geometry (geometry :x "0%"
+  :geometry (geometry :x "0.55%"
                       :y "0%"
             )
   :stacking "overlay"
@@ -48,8 +47,7 @@
     :reveal show_temps
     :duration "175ms"
     (box
-      :style "background-color: red"
-      :class "island temps-popup-content hardware-popup-content"
+      :class "island temps-popup-content hardware-popup-content popup"
       (label :text temps_string)
     )
   )
@@ -59,7 +57,7 @@
 ; Memory Usage window, same as CPU && GPU temps window
 (defwindow memory_popup
   :monitor 0
-  :geometry (geometry :x "4%"
+  :geometry (geometry :x "6.6%"
                       :y "0%"
             )
   :stacking "overlay"
@@ -69,10 +67,9 @@
     :reveal show_memory 
     :duration "175ms"
     (box
-      :style "background-color: red"
-      :class "island temps-popup-content hardware-popup-content"
+      :class "island temps-popup-content hardware-popup-content popup"
       (label
-        :text "Used: ${round(EWW_RAM.used_mem / 1073741824, 1)}GB\\nTotal: ${round(EWW_RAM.total_mem / 1073741824, 1)}GB"
+        :text "${round(EWW_RAM.used_mem / 1073741824, 1)}GB / ${round(EWW_RAM.total_mem / 1073741824, 1)}GB"
       )
     )
   )
@@ -82,23 +79,30 @@
 ; Spotify popup
 (defwindow song_popup
   :monitor 0
-  :geometry (geometry :x "80%" 
+  :geometry (geometry :x "88%" 
                       :y "1%"
             ) 
   :stacking "overlay"
   :focusable "false"
-  :anchor "top right"
+  :anchor "top center"
   (revealer
     :transition "slidedown"
     :reveal show_song 
     :duration "175ms"
-    (box :class "island song-popup-content"
+    (box :class "island song-popup-content popup" :orientation "v"
       (label
-        :text now_playing
-        ;:wrap true
+        :text now_playing_title
+        :limit-width 60
+        :truncate-left false
+        :truncate false
+        :show-truncated false
+        :wrap true
         :wrap-mode "word"
         :xalign 0.5
         :justify "center"
+      )
+      (label
+        :text now_playing_artist
       )
     )
   )
@@ -117,6 +121,6 @@
            :stacking "fg"
            :exclusive "true"
            :focusable "ondemand"
-           :namespace "primary-bar"
+           :namespace "bar"
            (bar)
 )

@@ -1,5 +1,6 @@
 * {
-  all: unset
+  all: unset;
+  font-family: "MesloLGM Nerd Font";
 }
 
 .bar-container {
@@ -27,6 +28,7 @@
 
 .clock {
   padding: 0px 10px 0px 10px;
+  font-family: "MesloLGM Nerd Font Mono";
 }
 
 .spotify, .mullvad { // Idk why these need to be special
@@ -34,7 +36,12 @@
  font-size: 19px;
 }
 
-// All icons get a bigger font-size
-.cpu-usage, .gpu-usage, .memory-widget, .workspace-btn, .clock {
+// Almost everything gets a bigger font-size
+.cpu-usage, .gpu-usage, .memory-widget, .workspace-btn, .clock, .popup {
   font-size: 17px;
+}
+
+.icon-label {
+  font-family: "sketchybar-app-font";
+  font-size: 16px;
 }

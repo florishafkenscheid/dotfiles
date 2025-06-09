@@ -4,19 +4,18 @@
     :onhoverlost "${EWW_CMD} update show_temps=false" 
 	(box :class "cpu-gpu-widget island"
 	     :orientation "h"
-	     :spacing 2
 	     :valign "center"
          :space-evenly false
 	  (label
 	    :class "cpu-usage"
-	    :text "󰍛  ${ceil(EWW_CPU.avg) ?: 0}% "
-        :width 55
-        :xalign 0
+	    :text "󰍛 ${ceil(EWW_CPU.avg) ?: 0}% "
+        :width 60
+        :xalign 0.1
 	  )
 	  (label
 	    :class "gpu-usage"
-	    :text "  ${gpu_percent ?: 0}%"
-        :width 55
+	    :text "${gpu_percent ?: 0}% "
+        :width 60
         :xalign 1
 	  )
     )
