@@ -2,9 +2,38 @@
   (eventbox
     :onhover "${EWW_CMD} update show_song=true" 
     :onhoverlost "${EWW_CMD} update show_song=false"
-    (label
-      :class "island spotify"
-      :text "󰓇"
+    
+    (box 
+      :class "island"
+      :orientation "h"
+      :space-evenly false
+      :spacing 5
+
+      (label :text "󰓇")
+
+      (revealer 
+        :transition "slideright"
+        :reveal show_song
+        :duration "175ms"
+
+        (box 
+          :orientation "h" 
+          :space-evenly false
+          :spacing 5
+          (label
+            :class "song-title"
+            :text "${now_playing_title}"
+            :limit-width 35
+            :truncate true
+            :show-truncated false
+          )
+          (label
+            :class "song-artist"
+            :text " ${now_playing_artist}"
+          )
+        )
+      )
+
     )
   )
 )

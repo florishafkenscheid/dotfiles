@@ -76,39 +76,6 @@
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Spotify popup
-(defwindow song_popup
-  :monitor 0
-  :geometry (geometry :x "88%" 
-                      :y "1%"
-            ) 
-  :stacking "overlay"
-  :focusable "false"
-  :anchor "top center"
-  (revealer
-    :transition "slidedown"
-    :reveal show_song 
-    :duration "175ms"
-    (box :class "island song-popup-content popup" :orientation "v"
-      (label
-        :text now_playing_title
-        :limit-width 60
-        :truncate-left false
-        :truncate false
-        :show-truncated false
-        :wrap true
-        :wrap-mode "word"
-        :xalign 0.5
-        :justify "center"
-      )
-      (label
-        :text now_playing_artist
-      )
-    )
-  )
-)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Defining the top bars
 (defwindow bar
            :monitor '["<primary>", "DP-2", 0]'
