@@ -17,31 +17,31 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 > [!NOTE]
 > ↩️ means somehow linked to the next point, ⏳ means currently WIP.
 
-- [x] Keybinds		        ~/.config/hypr/hyprland.conf
-- [x] Zsh			        ~/.zshrc
-- [x] Starship		        ~/.config/starship.toml
-- [x] NeoVim		        ~/.config/nvim
-	- [x] lazy
-	- [x] lspconfig
-	- [x] lualine
-	- [x] lush
-	- [x] mason
-	- [x] mason-lspconfig
-	- [x] nvim-tree
-	- [x] telescope
-	- [x] treesitter
-	- [x] web-devicons
-- [ ] Kitty settings	    ~/.config/kitty
-<s>- [ ] ! Waybar		    ~/.config/waybar</s> // Replaced by EWW ↩️ 
-- [x] EWW			        ~/.config/eww/* 
-- [x] tuigreet		        /etc/greetd/config.toml
-- [ ] fastfetch		        ~/.config/fastfetch/config.jsonc
-- [ ] rofi			        ~/.config/rofi/config.rasi
-- [ ] mako                  ~/.config/mako/config
-<s>- [ ] mopidy ↩️</s>      // Good luck if you want to use spotify
-<s>- [ ] mpd ↩️</s>
-<s>- [ ] rmpc </s>
-- [ ] spotify-player        ~/.config/spotify-player/app.toml
+- [x] Keybinds - `~/.config/hypr/hyprland.conf`
+- [x] Zsh - `~/.zshrc`
+- [x] Starship - `~/.config/starship.toml`
+- [x] NeoVim - `~/.config/nvim/`
+  - [x] `lazy`
+  - [x] `lspconfig`
+  - [x] `lualine`
+  - [x] `lush`
+  - [x] `mason`
+  - [x] `mason-lspconfig`
+  - [x] `nvim-tree`
+  - [x] `telescope`
+  - [x] `treesitter`
+  - [x] `web-devicons`
+- [ ] Kitty - `~/.config/kitty/`
+- [ ] ~~Waybar - `~/.config/waybar/`~~ ↩️ *(Replaced by EWW)*
+- [x] EWW - `~/.config/eww/`
+- [x] tuigreet - `/etc/greetd/config.toml`
+- [ ] fastfetch - `~/.config/fastfetch/config.jsonc`
+- [ ] rofi - `~/.config/rofi/config.rasi`
+- [ ] mako - `~/.config/mako/config`
+- [ ] ~~mopidy~~ ↩️ *(Spotify integration issues)*
+- [ ] ~~mpd~~ ↩️
+- [ ] ~~rmpc~~
+- [ ] spotify-player - `~/.config/spotify-player/app.toml`
 
 ### EWW
 > [!NOTE]
@@ -53,3 +53,10 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - Time
 - Spaces in middle or left, with name or icon of active window(s)
 - Spotify now playing
+
+## Future
+For when I eventually get sick of this, or I simply want to try out different DE's, WM's, widget systems etc, I am compiling a list of interesting, yet not necessarily related projects to use.
+
+### [Caelestia](https://github.com/caelestia-dots)
+- [Quickshell](https://quickshell.outfoxxed.me/)
+- [Foot](https://codeberg.org/dnkl/foot)
