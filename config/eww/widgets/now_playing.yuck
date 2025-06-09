@@ -20,6 +20,7 @@
           :orientation "h" 
           :space-evenly false
           :spacing 5
+          :visible {strlength(now_playing_title) > 0 || strlength(now_playing_artist) > 0}
           (label
             :class "song-title"
             :text "${now_playing_title}"

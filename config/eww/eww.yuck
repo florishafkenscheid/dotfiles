@@ -27,8 +27,8 @@
 
 ; Now playing (using playerctl, limited to spotify_player)
 (defvar show_song false)
-(deflisten now_playing_title :initial "No song has been played yet" "playerctl -p spotify_player --follow metadata --format '{{title}}'")
-(deflisten now_playing_artist :initial "No artist to accompany this title" "playerctl -p spotify_player --follow metadata --format '{{artist}}'") 
+(deflisten now_playing_title :initial "" "playerctl -p spotify_player --follow metadata --format '{{title}}'")
+(deflisten now_playing_artist :initial "" "playerctl -p spotify_player --follow metadata --format '{{artist}}'") 
 
 ; Get workspaces and if they're active or not
 (defpoll workspace_labels :interval "1s" "/home/blousy/.dotfiles/config/eww/scripts/get-workspace-labels.sh")
