@@ -41,6 +41,10 @@
   font-size: 17px;
 }
 
+.workspace-btn.active {
+  background-color: rgba(100, 100, 100, 0.4);
+}
+
 .icon-label {
   font-family: "sketchybar-app-font";
   font-size: 16px;

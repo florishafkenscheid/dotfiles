@@ -232,7 +232,7 @@ hyprctl workspaces -j | jq --argjson clients "$(hyprctl clients -j)" --argjson a
   | {
       id: $id,
       name,
-      active: ($id == $active),
+      active: ($id == $active.id),
       icons: (
         $clients
         | map(select(.workspace.id == $id) | .class)
