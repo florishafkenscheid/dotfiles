@@ -10,6 +10,9 @@ With "bare bones", I mean a lean system focussing on functionality and minimal o
 
 The theme is based on the Dune movies, focussing on the vibrant oranges used in the cinematography.
 
+> [!IMPORTANT]
+> These files are symlinked to the right place using [GNU Stow](https://brandon.invergo.net/news/2012-05-26-using-gnu-stow-to-manage-your-dotfiles.html).
+
 ## Progress
 > [!NOTE]
 > ↩️ means somehow linked to the next point, ⏳ means currently WIP.
