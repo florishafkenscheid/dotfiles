@@ -29,15 +29,15 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 	- [x] treesitter
 	- [x] web-devicons
 - [ ] Kitty settings	    ~/.config/kitty
-- [ ] <s>! Waybar		    ~/.config/waybar</s> // Replaced by EWW ↩️ 
-- [ ] EWW			        ~/.config/eww/* 
+<s>- [ ] ! Waybar		    ~/.config/waybar</s> // Replaced by EWW ↩️ 
+- [x] EWW			        ~/.config/eww/* 
 - [x] tuigreet		        /etc/greetd/config.toml
 - [ ] fastfetch		        ~/.config/fastfetch/config.jsonc
 - [ ] rofi			        ~/.config/rofi/config.rasi
 - [ ] mako                  ~/.config/mako/config
-- [ ] <s>mopidy ↩️</s>      // Good luck if you want to use spotify
-- [ ] <s>mpd ↩️</s>
-- [ ] <s>rmpc </s>
+<s>- [ ] mopidy ↩️</s>      // Good luck if you want to use spotify
+<s>- [ ] mpd ↩️</s>
+<s>- [ ] rmpc </s>
 - [ ] spotify-player        ~/.config/spotify-player/app.toml
 
 ### EWW
