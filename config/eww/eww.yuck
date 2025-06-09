@@ -31,7 +31,7 @@
 (deflisten now_playing_artist :initial "" "playerctl -p spotify_player --follow metadata --format '{{artist}}'") 
 
 ; Get workspaces and if they're active or not
-(defpoll workspace_labels :interval "1s" "/home/blousy/.dotfiles/config/eww/scripts/get-workspace-labels.sh")
+(defpoll workspace_labels :interval "1s" "scripts/get-workspace-labels.sh")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; CPU && GPU temps window, add more if more monitors
