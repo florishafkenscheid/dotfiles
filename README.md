@@ -1,4 +1,4 @@
-{Insert fastfetch screenshot}
+![An image of my main screen highlighting my desktop environment](/images/fastfetch_screenshot.png)
 ## What?
 This repository contains the configuration files (dotfiles) for my minimalist, yet aesthetically pleasing, Arch Linux desktop environment.
 
