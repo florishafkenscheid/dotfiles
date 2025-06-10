@@ -14,7 +14,7 @@
   },
 
   "display": {
-    "separator": " → ",
+    "separator": " ",
     "color": {
         "keys": "#D77F00",
         "title": "#FFFFFF"
@@ -25,23 +25,83 @@
   },
 
   "modules": [
-    "title",
-    "separator",
-    "os",
-    "host",
-    "kernel",
-    "uptime",
-    "packages",
-    "shell",
-    "display",
-    "de",
-    "wm",
-    "terminal",
-    "terminalfont",
-    "cpu",
-    "gpu",
-    "memory",
-    "disk",
-    "break"
+    "break",
+    "break",
+    {
+		"type": "title",
+        "format": "{user-name-colored}{#keys}{at-symbol-colored}{host-name-colored}"
+	},
+    {
+        "type": "custom",
+        "format": "{#keys}╭──────────────╮"
+    },
+    {
+		"type": "os",
+		"key": "│  distro     {#keys}│",
+        "format": "{pretty-name}"
+	},
+    {
+		"type": "kernel",
+		"key": "│ 󰞸 kernel     {#keys}│",
+        "format": "{release}"
+	},
+    {
+		"type": "disk",
+		"key": "│  os age     {#keys}│",
+        "format": "{15} days {16} hours"
+	},
+    {
+		"type": "packages",
+		"key": "│  packages   {#keys}│"
+	},
+    {
+		"type": "shell",
+		"key": "│  shell      {#keys}│",
+        "format": "{pretty-name}"
+	},
+    {
+		"type": "wm",
+		"key": "│  wm         {#keys}│",
+        "format": "{pretty-name}"
+	},
+    /*{
+		"type": "wm",
+		"key": "│  wm         {#keys}│",
+        "format": "{pretty-name}"
+	},*/
+    {
+        "type": "lm",
+		"key": "│  greeter    {#keys}│",
+        "format": "{service}/tuigreet"
+    },
+    {
+		"type": "terminal",
+		"key": "│  terminal   {#keys}│",
+        "format": "{pretty-name}"
+	},
+    {
+		"type": "terminalfont",
+		"key": "│  font       {#keys}│",
+        "format": "{name}"
+	},
+    {
+		"type": "cpu",
+		"key": "│  cpu        {#keys}│",
+        "format": "{name} @ {freq-max}"
+	},
+    {
+		"type": "gpu",
+		"key": "│ 󰾲 gpu        {#keys}│",
+        "format": "{name}"
+	},
+    {
+		"type": "memory",
+		"key": "│  ram        {#keys}│",
+        "format": "{used} / {total}"
+	},
+    {
+        "type": "custom",
+        "format": "{#keys}╰──────────────╯"
+    }
   ]
 }
