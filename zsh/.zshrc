@@ -82,6 +82,9 @@ eval "$(starship init zsh)"
 
 # User configuration
 
+# Run fastfetch on startup
+fastfetch
+
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
