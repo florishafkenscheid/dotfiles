@@ -1,4 +1,9 @@
 configuration {
+    modes: "drun";
+    font: "MesloLGM Nerd Font 12";
+    show-icons: true;
+    terminal: "kitty";
+    drun-display-format: "{name}";
 /*	modes: "window,drun,run,ssh";*/
 /*	font: "mono 12";*/
 /*	location: 0;*/
