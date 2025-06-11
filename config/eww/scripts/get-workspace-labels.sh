@@ -67,6 +67,7 @@ declare -A APP_ICONS=(
   ["Discord"]=":discord:"
   ["Discord Canary"]=":discord:"
   ["Discord PTB"]=":discord:"
+  ["vesktop"]=":discord:"
   ["Neovide"]=":vim:"
   ["MacVim"]=":vim:"
   ["Vim"]=":vim:"
