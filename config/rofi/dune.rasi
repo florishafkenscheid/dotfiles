@@ -1,0 +1,121 @@
+/*******************************************************************************
+ * ROUNDED THEME FOR ROFI 
+ * User                 : LR-Tech               
+ * Theme Repo           : https://github.com/lr-tech/rofi-themes-collection
+ *******************************************************************************/
+
+* {
+    /* --- YOUR DUNE COLORS --- */
+    fg2:        #d77f00;
+    font:       "MesloLGM Nerd Font 12";
+    colorbg:    rgba(42, 34, 28, 0.8);
+    textfg:     #e3d9c5;
+    transparentcolorbg: rgba(215, 127, 0, 0.3);
+    borderfg:   rgba(215, 127, 0, 0.5);
+    windowbg:   rgba(21, 17, 14, 0.8);
+}
+
+* {
+    background-color:   transparent;
+    margin:     0px;
+    padding:    0px;
+    spacing:    0px;
+    text-color:         @textfg;
+}
+
+window {
+    border-radius:  12px;
+    border:         0px;
+    location:       north;
+    anchor:         north;
+    y-offset:       300px;
+    width:          800;
+}
+
+mainbox {
+    padding: 15px;
+}
+
+inputbar {
+    children:   [ prompt, entry ];
+    margin: 0px 0px 8px 0px;
+    border: 2.5px;
+}
+
+prompt {
+    border-radius: 8px;
+    font:   "MesloLGM Nerd Font Bold 12";
+    vertical-align: 0.5;
+    text-color: @fg2;
+    background-color:   @colorbg;
+    border: 1.0px;
+    border-color: @borderfg;
+    border-radius:  12px;
+    margin: 0px 8px 0px 0px;
+    padding: 10px;
+}
+
+entry {
+    background-color:   @windowbg;
+    border: 0px;
+    border: 2.5px;
+    border-color: @borderfg;
+    border-radius:  12px;
+    padding: 13px;
+}
+
+message {
+    background-color:   @windowbg;
+    border-color:       @windowbg;
+    border-radius:      12px;
+    margin: 0 0 12px 0;
+    padding: 10px;
+}
+
+textbox {
+    padding:    8px 24px;
+    text-color: @fg2;
+    background-color:   @colorbg;
+    border: 2.0px;
+    border-color: @borderfg;
+    border-radius:  12px;
+}
+
+element {
+    border-radius: 8px;
+    padding:        11px 16px;
+    spacing:        8px;
+}
+
+element normal active {
+    text-color: @textfg;
+}
+
+element selected normal, element selected active {
+    background-color: @transparentcolorbg;
+    text-color: @fg2;
+    border: 2px;
+    border-color: @borderfg;
+}
+
+element-icon {
+    size:           1.5em;
+    vertical-align: 0.5;
+}
+
+element-text {
+    text-color: inherit;
+    vertical-align: 0.5;
+}
+
+listview {
+    background-color: @windowbg;
+    require-input: false;
+    border-radius:  12px;
+    border: 2.5px;
+    border-color: @borderfg;
+    columns:    2;
+    fixed-height: false;
+    lines:      5;
+    padding: 15px;
+}
