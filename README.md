@@ -35,7 +35,7 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - [ ] ~~Waybar - `~/.config/waybar/`~~ ↩️ *(Replaced by EWW)*
 - [x] EWW - `~/.config/eww/`
 - [x] tuigreet - `/etc/greetd/config.toml`
-- [ ] fastfetch - `~/.config/fastfetch/config.jsonc`
+- [x] fastfetch⏳ - `~/.config/fastfetch/config.jsonc`
 - [ ] rofi - `~/.config/rofi/config.rasi`
 - [ ] mako - `~/.config/mako/config`
 - [ ] ~~mopidy~~ ↩️ *(Spotify integration issues)*
