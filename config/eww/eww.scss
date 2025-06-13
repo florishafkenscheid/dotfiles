@@ -1,51 +1,68 @@
 * {
   all: unset;
   font-family: "MesloLGM Nerd Font";
+  font-size: 18px; /* Based on 1080p 1rem = 18px */
 }
-
+/* Widths & padding */
 .bar-container {
-  padding: 8px 10px 0px 10px;
+  /* 8px top, 10px sides */
+  padding: 0.5em 0.625em 0 0.625em;
 }
 
 .island {
     background-color: rgba(0, 0, 0, 0.8);
     border: 2px solid rgb(215, 127, 0);
-    border-radius: 10px;
-    padding: 0 10px;
+    border-radius: 0.625em; /* 10px */
+    padding: 0 0.625em; /* 10px */
 }
 
 .island.left {
-  min-width: 150px;
+  min-width: 9.375em; /* 150px */
 }
 
 .cpu-gpu-widget {
-  min-width: 25px;
+  min-width: 1.56em; /* 25px */
+  min-height: 1.4em;
 }
 
 .cpu-usage, .gpu-usage {
-  min-width: 10px;
+  min-width: 0.625em; /* 10px */
 }
 
 .clock {
-  padding: 0px 10px 0px 10px;
+  padding: 0 0.625em; /* 10px */ 
   font-family: "MesloLGM Nerd Font Mono";
 }
 
-.spotify, .mullvad { // Idk why these need to be special
- padding-right: 14px;
- font-size: 19px;
+.spotify { 
+  padding-right: 0;
 }
 
-// Almost everything gets a bigger font-size
+.spotify-revealer {
+  padding-right: 0.8em;
+}
+
+/* Font & sizes */
+.icon-label, .spotify-icon {
+  font-family: "sketchybar-app-font";
+  font-size: 1.3rem;
+}
+
+.mullvad { // Idk why this needs to be special
+ padding-right: 0.8em; /* 14px */
+ font-size: 1.1875rem; /* 19px */
+}
+
 .cpu-usage, .gpu-usage, .memory-widget, .workspace-btn, .clock, .popup {
-  font-size: 17px;
+  font-size: 1.2rem;
 }
 
+/* State indicators */
 .workspace-btn.active {
   background-color: rgba(100, 100, 100, 0.4);
 }
 
-.icon-label {
-  font-family: "sketchybar-app-font";
-  font-size: 16px;
+/* 4K scaling, just change the bar class in widgets/bar.yuck */
+.bar-4k {
+  font-size: 28px;
 }
