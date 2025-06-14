@@ -18,4 +18,5 @@ return {
 
     -- Utilities
     require("blousy.git-blame"),
+    require("blousy.blink-cmp"),
 }
