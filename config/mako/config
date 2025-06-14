@@ -1,0 +1,23 @@
+max-history=5
+sort=-time
+#include=
+#on-button-left=
+#on-button-middle=
+#on-button-right=
+#on-touch=
+#on-notify=
+# Actions are: dismiss(-all,-group), invoke(-default)-action, exec
+
+
+# Styling
+#font=
+background-color=#000000AA
+#text-color=
+#width=
+#height=
+#outer-margin=
+#margin=
+padding=8
+#border-size=
+border-color=#D77F00
+border-radius=5
