@@ -21,17 +21,17 @@
           :orientation "h" 
           :space-evenly false
           :spacing 15
-          :visible {strlength(now_playing_title) > 0 || strlength(now_playing_artist) > 0}
+          :visible {strlength(now_playing_data) > 0}
           (label
             :class "song-title"
-            :text "${now_playing_title}"
+            :text "${now_playing_data.title}"
             :limit-width 35
             :truncate true
             :show-truncated false
           )
           (label
             :class "song-artist"
-            :text " ${now_playing_artist}"
+            :text " ${now_playing_data.artist}"
           )
         )
       )
