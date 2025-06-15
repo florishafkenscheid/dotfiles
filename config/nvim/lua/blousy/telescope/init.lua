@@ -6,6 +6,7 @@ return {
     dependencies = {
         "nvim-lua/plenary.nvim",
         { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+        "nvim-telescope/telescope-live-grep-args.nvim",
     },
 
     config = function()
@@ -33,9 +34,11 @@ return {
                 },
             },
         })
+        telescope.load_extension("live_grep_args")
 
         local opts = { noremap = true, silent = true }
 
         vim.keymap.set('n', '<C-f>', function () builtin.find_files({ hidden = true, no_ignore = true }) end, opts)
+        vim.keymap.set('n', '<C-g>', require('telescope').extensions.live_grep_args.live_grep_args, { noremap = true })
     end,
 }
