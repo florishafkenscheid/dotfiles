@@ -3,7 +3,7 @@
 declare -A APP_ICONS=(
   ["kitty"]=":kitty:"
   ["vesktop"]=":discord:"
-  ["Obsidian"]=":obsidian:"
+  ["obsidian"]=":obsidian:"
   ["zen"]=":zen_browser:"
   ["spotify"]=":spotify:"
   ["default"]=":default:"
