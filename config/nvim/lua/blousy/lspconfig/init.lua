@@ -47,12 +47,13 @@ return {
 	        buf_set_keymap(bufnr, 'n', '<leader>q', '<cmd>lua vim.diagnostic.set_loclist()<CR>', opts)
 	        buf_set_keymap(bufnr, 'n', '<leader>f', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', opts)
         end
+
+    vim.api.nvim_create_autocmd('BufWritePre', {
+        pattern = '*.rs',
+        callback = function()
+            vim.lsp.buf.format({ async = true })
+        end,
+    })
+
     end
 }
-
-vim.api.nvim_create_autocmd('BufWritePre', {
-  pattern = '*.rs',
-  callback = function()
-    vim.lsp.buf.format({ async = true })
-  end,
-})
