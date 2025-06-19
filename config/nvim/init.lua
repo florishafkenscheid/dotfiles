@@ -16,6 +16,9 @@ keymap('n', '<Enter>', 'o<ESC>', opts)
 -- Shift Enter = new line above
 keymap('n', 'SHIFT<Enter>', 'O<ESC>', opts)
 
+-- Exit terminal mode easier
+keymap('t', '<esc><esc>', '<c-\\><c-n>', opts)
+
 --------------------
 --    Options     --
 --------------------

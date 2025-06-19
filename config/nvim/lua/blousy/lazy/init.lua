@@ -19,4 +19,5 @@ return {
     -- Utilities
     require("blousy.git-blame"),
     require("blousy.blink-cmp"),
+    require("blousy.floaterminal"),
 }
