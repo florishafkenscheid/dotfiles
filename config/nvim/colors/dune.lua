@@ -63,6 +63,11 @@ Winseparator = {fg = "#A05908"},
     -- PATCH_CLOSE
     -- Added by me as needed
 htmlEndTag = {link= "Function"},
+typescriptEndColons = {link = "Identifier"},
+typescriptVariable = {link = "Function"},
+typescriptTypeReference = {link = "Function"},
+typescriptOperator = {link = "Function"},
+typescriptIdentifierName = {link = "Function"},
 }
 
 vim.cmd("highlight clear")

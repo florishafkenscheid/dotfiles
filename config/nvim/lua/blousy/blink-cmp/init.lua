@@ -1,5 +1,6 @@
 return {
   'saghen/blink.cmp',
+  dependencies = 'rafamadriz/friendly-snippets',
   version = '1.*',
   build = 'cargo build --release',
   opts = {
@@ -18,6 +19,8 @@ return {
         ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
         ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
     },
+
+    signature = { enabled = true }
   },
   opts_extend = { "sources.default" }
 }

@@ -8,14 +8,27 @@ return {
     dependencies = {
        "williamboman/mason.nvim",
        "nvim-treesitter/nvim-treesitter",
-       -- "hrsh7th/nvim-cpm",
+       "saghen/blink.cmp"
     },
 
     -- config, run after plugin loads
     config = function ()
         local lspconfig = require("lspconfig")
-        local capabilities = vim.lsp.protocol.make_client_capabilities() -- Basic capabilities
-        -- local capabilities = require("cmp_nvim_lsp).default_capabilities()
+        local capabilities = require('blink.cmp').get_lsp_capabilities()
+
+        lspconfig.rust_analyzer.setup {
+            capabilities = capabilities,
+            settings = {
+                ['rust_analyzer'] = {
+                    check = {
+                        command = "clippy"
+                    },
+                    checkOnSave = {
+                        command = "clippy"
+                    },
+                },
+            },
+        }
 
         -- define global on_attach, runs for every lsp client that attaches to a buffer
         local on_attach = function(client, bufnr)
