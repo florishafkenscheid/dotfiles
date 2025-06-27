@@ -109,7 +109,6 @@ fi
 alias zen="zen-browser"
 alias vim="nvim"
 alias off="poweroff"
-alias spotify="spotify_player"
 alias icat="kitten icat --align left"
 
 factorio() {
@@ -118,3 +117,5 @@ factorio() {
     HUGETLB_RESTRICT_EXE=factorio \
     command factorio "$@"
 }
+
+export PATH=$PATH:/home/blousy/.spicetify

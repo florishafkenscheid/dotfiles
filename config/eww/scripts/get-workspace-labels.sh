@@ -6,6 +6,7 @@ declare -A APP_ICONS=(
   ["obsidian"]=":obsidian:"
   ["zen"]=":zen_browser:"
   ["spotify"]=":spotify:"
+  ["Spotify"]=":spotify:"
   ["default"]=":default:"
 )
 
