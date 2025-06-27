@@ -111,3 +111,10 @@ alias vim="nvim"
 alias off="poweroff"
 alias spotify="spotify_player"
 alias icat="kitten icat --align left"
+
+factorio() {
+    LD_PRELOAD=/usr/lib64/libhugetlbfs.so \
+    HUGETLB_MORECORE=thp \
+    HUGETLB_RESTRICT_EXE=factorio \
+    command factorio "$@"
+}
