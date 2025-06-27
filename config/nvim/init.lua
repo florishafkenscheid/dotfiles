@@ -58,9 +58,9 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- load plugins
-require("lazy").setup("blousy.lazy", {
+require("lazy").setup("blousy.lazy")
 
-})
+require("blousy.floaterminal")
 
 --------------------
 --  Colorscheme   --
