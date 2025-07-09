@@ -1,6 +1,6 @@
 * {
   all: unset;
-  font-family: "MesloLGM Nerd Font";
+  font-family: "MesloLGM Nerd Font Propo";
   font-size: 18px; /* Based on 1080p 1rem = 18px */
 }
 /* Widths & padding */
@@ -49,7 +49,6 @@
 }
 
 .mullvad { // Idk why this needs to be special
- padding-right: 0.8em; /* 14px */
  font-size: 1.1875rem; /* 19px */
 }
 
