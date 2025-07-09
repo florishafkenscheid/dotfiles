@@ -72,6 +72,9 @@ HIST_STAMPS="dd/mm/yyyy"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
 	git
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    fzf-tab
 )
 
 # Load oh-my-zsh
@@ -110,6 +113,11 @@ alias zen="zen-browser"
 alias vim="nvim"
 alias off="poweroff"
 alias icat="kitten icat --align left"
+alias cd="z"
+alias ls="exa"
+alias ll="exa -l"
+alias tree="exa --tree"
+alias cat="bat"
 
 factorio() {
     LD_PRELOAD=/usr/lib64/libhugetlbfs.so \
@@ -118,4 +126,37 @@ factorio() {
     command factorio "$@"
 }
 
+switch-audio() {
+    current=$(pactl get-default-sink)
+    if [[ "$current" == "alsa_output.usb-Blue_Microphones_Yeti_Stereo_Microphone_REV8-00.analog-stereo" ]]; then
+        new_sink="alsa_output.usb-Generic_USB_Audio-00.HiFi__Headphones__sink"
+        echo "Switching to IEMs"
+    else
+        new_sink="alsa_output.usb-Blue_Microphones_Yeti_Stereo_Microphone_REV8-00.analog-stereo"
+        echo "Switching to Headphones"
+    fi
+
+    pactl set-default-sink "$new_sink"
+
+    for input in $(pactl list short sink-inputs | awk '{print $1}'); do
+        pactl move-sink-input "$input" "$new_sink"
+    done
+}
+
 export PATH=$PATH:/home/blousy/.spicetify
+
+# Load zoxide
+eval "$(zoxide init zsh)"
+
+# Load fzf
+eval "$(fzf --zsh)"
+
+# fzf options
+export FZF_DEFAULT_OPTS='--multi --no-height --extended'
+
+# Zstyles
+# Completion styling
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' menu no
+
