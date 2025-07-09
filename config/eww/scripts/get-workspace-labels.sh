@@ -7,6 +7,8 @@ declare -A APP_ICONS=(
   ["zen"]=":zen_browser:"
   ["spotify"]=":spotify:"
   ["Spotify"]=":spotify:"
+  ["steam"]=":steam:"
+  ["factorio"]=":gear_old:"
   ["default"]=":default:"
 )
 
