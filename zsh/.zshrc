@@ -118,6 +118,8 @@ alias ls="exa"
 alias ll="exa -l"
 alias tree="exa --tree"
 alias cat="bat"
+alias ssh="kitty +kitten ssh"
+export TERM=xterm-256color
 
 factorio() {
     LD_PRELOAD=/usr/lib64/libhugetlbfs.so \
@@ -129,7 +131,7 @@ factorio() {
 switch-audio() {
     current=$(pactl get-default-sink)
     if [[ "$current" == "alsa_output.usb-Blue_Microphones_Yeti_Stereo_Microphone_REV8-00.analog-stereo" ]]; then
-        new_sink="alsa_output.usb-Generic_USB_Audio-00.HiFi__Headphones__sink"
+        new_sink="alsa_output.usb-TTGK_Technology_TP35_Pro_330243E6250525-01.analog-stereo"
         echo "Switching to IEMs"
     else
         new_sink="alsa_output.usb-Blue_Microphones_Yeti_Stereo_Microphone_REV8-00.analog-stereo"
