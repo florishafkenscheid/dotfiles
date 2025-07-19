@@ -2,13 +2,14 @@
 
 declare -A APP_ICONS=(
   ["kitty"]=":kitty:"
-  ["vesktop"]=":discord:"
+  ["discord"]=":discord:"
   ["obsidian"]=":obsidian:"
-  ["zen"]=":zen_browser:"
+  ["zen browser"]=":zen_browser:"
+  ["firefox"]=":firefox:"
   ["spotify"]=":spotify:"
-  ["Spotify"]=":spotify:"
   ["steam"]=":steam:"
   ["factorio"]=":gear_old:"
+  ["jellyfin media player"]=":jellyfin:"
   ["default"]=":default:"
 )
 
@@ -22,7 +23,12 @@ icons_to_json() {
     echo "$json"
 }
 
-hyprctl workspaces -j | jq --argjson clients "$(hyprctl clients -j)" --argjson active "$(hyprctl activeworkspace -j)" --argjson icons "$(icons_to_json)" '
+clients=$(hyprctl clients -j)
+workspaces=$(hyprctl workspaces -j)
+active_workspace=$(hyprctl activeworkspace -j)
+icons_json=$(icons_to_json)
+
+hyprctl workspaces -j | jq --argjson clients "$clients" --argjson active "$active_workspace" --argjson icons "$icons_json" '
 [
   .[]
   | select(.id > 0 and (.name | test("^special:") | not))
@@ -35,16 +41,14 @@ hyprctl workspaces -j | jq --argjson clients "$(hyprctl clients -j)" --argjson a
         $clients
         | map(
             select(.workspace.id == $id)
-            | if .class == "kitty" and (.title | test("spotify"; "i")) then
-                "spotify"
-            else
-                .class
-            end
-        )
-        | unique
-        | map(
-            if $icons[.] then $icons[.] else "" end
+            | (.initialTitle? | ascii_downcase // "__app_not_found__") as $app_key_candidate
+            | if $icons[$app_key_candidate] then
+                $icons[$app_key_candidate]
+              else
+                $icons["default"]
+              end
           )
+        | unique
       )
     }
 ] | sort_by(.id)'
