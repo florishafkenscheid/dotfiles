@@ -10,6 +10,7 @@ declare -A APP_ICONS=(
   ["steam"]=":steam:"
   ["factorio"]=":gear_old:"
   ["jellyfin media player"]=":jellyfin:"
+  ["rofi"]=":spotlight:"
   ["default"]=":default:"
 )
 
