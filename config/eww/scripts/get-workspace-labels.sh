@@ -28,27 +28,26 @@ workspaces=$(hyprctl workspaces -j)
 active_workspace=$(hyprctl activeworkspace -j)
 icons_json=$(icons_to_json)
 
-hyprctl workspaces -j | jq --argjson clients "$clients" --argjson active "$active_workspace" --argjson icons "$icons_json" '
+echo "$workspaces" | jq --slurpfile clients <(echo "$clients") \
+                           --argjson active "$active_workspace" \
+                           --argjson icons "$icons_json" '
 [
   .[]
   | select(.id > 0 and (.name | test("^special:") | not))
-  | .id as $id
+  | .id as $workspace_id
   | {
-      id: $id,
+      id: $workspace_id,
       name,
-      active: ($id == $active.id),
+      active: (.id == $active.id),
       icons: (
-        $clients
+        $clients[0]
         | map(
-            select(.workspace.id == $id)
-            | (.initialTitle? | ascii_downcase // "__app_not_found__") as $app_key_candidate
-            | if $icons[$app_key_candidate] then
-                $icons[$app_key_candidate]
-              else
-                $icons["default"]
-              end
+            select(.workspace.id == $workspace_id)
+            | $icons[(.initialClass? | ascii_downcase)] // $icons[(.initialTitle? | ascii_downcase)] // $icons["default"]
           )
         | unique
       )
     }
-] | sort_by(.id)'
+] | sort_by(.id)
+'
+
