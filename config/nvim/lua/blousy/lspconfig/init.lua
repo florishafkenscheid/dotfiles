@@ -13,22 +13,7 @@ return {
 
     -- config, run after plugin loads
     config = function ()
-        local lspconfig = require("lspconfig")
         local capabilities = require('blink.cmp').get_lsp_capabilities()
-
-        lspconfig.rust_analyzer.setup {
-            capabilities = capabilities,
-            settings = {
-                ['rust_analyzer'] = {
-                    check = {
-                        command = "clippy"
-                    },
-                    checkOnSave = {
-                        command = "clippy"
-                    },
-                },
-            },
-        }
 
         -- define global on_attach, runs for every lsp client that attaches to a buffer
         local on_attach = function(client, bufnr)
@@ -48,12 +33,29 @@ return {
 	        buf_set_keymap(bufnr, 'n', '<leader>f', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', opts)
         end
 
-    vim.api.nvim_create_autocmd('BufWritePre', {
-        pattern = '*.rs',
-        callback = function()
-            vim.lsp.buf.format({ async = true })
-        end,
-    })
+        vim.lsp.config('rust_analyzer', {
+            capabilities = capabilities,
+            on_attach = on_attach,
+            settings = {
+                ['rust_analyzer'] = {
+                    check = {
+                        command = "clippy"
+                    },
+                    checkOnSave = {
+                        command = "clippy"
+                    },
+                },
+            },
+        })
+
+        vim.lsp.enable('rust_analyzer')
+
+        vim.api.nvim_create_autocmd('BufWritePre', {
+            pattern = '*.rs',
+            callback = function()
+                vim.lsp.buf.format({ async = true })
+            end,
+        })
 
     end
 }
