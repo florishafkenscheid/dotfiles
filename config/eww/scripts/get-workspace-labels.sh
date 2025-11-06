@@ -11,6 +11,7 @@ declare -A APP_ICONS=(
   ["factorio"]=":gear_old:"
   ["jellyfin media player"]=":jellyfin:"
   ["rofi"]=":spotlight:"
+  ["tor browser"]=":tor_browser:"
   ["default"]=":default:"
 )
 
