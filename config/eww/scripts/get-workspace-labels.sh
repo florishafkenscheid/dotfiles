@@ -12,6 +12,7 @@ declare -A APP_ICONS=(
   ["jellyfin media player"]=":jellyfin:"
   ["rofi"]=":spotlight:"
   ["tor browser"]=":tor_browser:"
+  ["tidal-hifi"]=":tidal:"
   ["default"]=":default:"
 )
 

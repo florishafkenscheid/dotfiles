@@ -14,15 +14,23 @@ spotify_present() {
   playerctl -p spotify status >/dev/null 2>&1
 }
 
+tidal_present() {
+  playerctl -p tida-hifi status >/dev/null 2>&1
+}
+
 spotify_playing() {
   [ "$(playerctl -p spotify status 2>/dev/null)" = "Playing" ]
+}
+
+tidal_playing() {
+  [ "$(playerctl -p tidal-hifi status 2>/dev/null)" = "Playing" ]
 }
 
 any_other_playing() {
   playerctl -a status 2>/dev/null | grep -qx "Playing"
 }
 
-if ! spotify_present; then
+if ! spotify_present || ! tidal_present; then
     playerctl "$ACTION" 2>/dev/null
     exit $?
 fi
@@ -31,6 +39,8 @@ case "$action_kind" in
     toggle)
         if spotify_playing; then
             playerctl -p spotify "$ACTION" 2>/dev/null
+        elif tidal_playing; then
+            playerctl -p tidal-hifi "$ACTION" 2>/dev/null
         elif any_other_playing; then
             playerctl "$ACTION"
         else
@@ -40,11 +50,13 @@ case "$action_kind" in
     pause)
         if spotify_playing; then
             playerctl -p spotify "$ACTION" 2>/dev/null
+        elif tidal_playing; then
+            playerctl -p tidal-hifi "$ACTION" 2>/dev/null
         else
             playerctl "$ACTION" 2>/dev/null
         fi
         ;;
     next|prev|other)
-        playerctl -p spotify "$ACTION" 2>/dev/null || playerctl "$ACTION" 2>/dev/null
+        playerctl -p spotify "$ACTION" 2>/dev/null || playerctl -p tidal-hifi "$ACTION" 2>/dev/null || playerctl "$ACTION" 2>/dev/null
         ;;
 esac

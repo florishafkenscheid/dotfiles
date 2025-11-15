@@ -7,9 +7,9 @@
       :class "island spotify"
       :orientation "h"
       :space-evenly false
-      :spacing 5
+      :spacing 14
 
-      (label :text ":spotify:" :class "spotify-icon")
+      (label :text "♫")
 
       (revealer 
         :transition "slideright"
