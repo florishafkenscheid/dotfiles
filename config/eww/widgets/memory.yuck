@@ -1,12 +1,14 @@
 (defwidget memory []
   (eventbox
-    :onhover "${EWW_CMD} update show_memory=true" 
-    :onhoverlost "${EWW_CMD} update show_memory=false" 
-    (box :class "memory-widget island"
+    :onhover "${EWW_CMD} update show_memory=true && ${EWW_CMD} update memory_hovered=true"
+    :onhoverlost "${EWW_CMD} update show_memory=false && ${EWW_CMD} update memory_hovered=false"
+    (box :class {hugepages_count > 4 ? "memory-widget island hugepages-active" : "memory-widget island"}
          :orientation "h"
          :spacing 12
          :valign "center"
-      (label :text "   ${round(EWW_RAM.used_mem_perc, 0)}%")
+      (label :text {memory_hovered 
+                    ? " ${round(EWW_RAM.used_mem_perc, 0)}%   󰂻 ${hugepages_count}"
+                    : "   ${round(EWW_RAM.used_mem_perc, 0)}%"})
     )
   )
 )

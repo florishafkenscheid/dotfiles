@@ -1,67 +1,77 @@
+// 4K Base Scaling
+// 1080p was 19px. Pure 2x scaling would be 38px.
+// 32px is a comfortable "Retina" sweet spot.
+$font-size-base: 32px;
+$border-width: 3px;
+
 * {
   all: unset;
   font-family: "MesloLGM Nerd Font Propo";
-  font-size: 19px; /* Based on 1080p 1rem = 18px */
 }
+
 /* Widths & padding */
 .bar-container {
-  /* 8px top, 10px sides */
+  font-size: $font-size-base;
   padding: 0.5em 0.625em 0 0.625em;
 }
 
 .island {
-    background-color: rgba(0, 0, 0, 0.8);
-    border: 2px solid rgb(215, 127, 0);
-    border-radius: 0.625em; /* 10px */
-    padding: 0 0.625em; /* 10px */
+  background-color: rgba(0, 0, 0, 0.8);
+  border: $border-width solid rgb(215, 127, 0);
+  border-radius: 0.625em;
+  padding: 0 0.625em;
 }
 
 .island.left {
-  min-width: 9.375em; /* 150px */
+  min-width: 9.375em;
 }
 
 .cpu-gpu-widget {
-  min-width: 1.56em; /* 25px */
+  min-width: 1.56em;
   min-height: 1.4em;
 }
 
 .cpu-usage, .gpu-usage {
-  min-width: 0.625em; /* 10px */
+  min-width: 0.625em;
 }
 
 .clock {
-  padding: 0 0.625em; /* 10px */ 
+  padding: 0 0.625em;
   font-family: "MesloLGM Nerd Font Mono";
 }
 
-.spotify { 
-  padding-right: 0;
+.spotify {
+  padding-right: 4px;
 }
 
 .spotify-revealer {
   padding-right: 0.8em;
 }
 
-/* Font & sizes */
+/* Font & sizes - Relative Scaling */
 .icon-label, .spotify-icon {
   font-family: "sketchybar-app-font";
-  font-size: 1.3rem;
+  font-size: 1em; // Changed rem to em for local scaling
 }
 
-.mullvad { // Idk why this needs to be special
- font-size: 1.1875rem; /* 19px */
+.mullvad {
+  font-size: 1em;
 }
 
-.cpu-usage, .gpu-usage, .memory-widget, .workspace-btn, .clock, .popup {
-  font-size: 1.2rem;
+.cpu-usage, .gpu-usage, .memory-widget, .workspace-btn, .clock {
+  font-size: 1em;
+}
+
+.memory-widget.hugepages-active {
+  border-color: #ca6f1a;
+  background-color: rgba(202, 111, 26, 0.15);
+}
+
+.popup {
+  font-size: 2em;
 }
 
 /* State indicators */
 .workspace-btn.active {
   background-color: rgba(100, 100, 100, 0.4);
-}
-
-/* 4K scaling, just change the bar class in widgets/bar.yuck */
-.bar-4k {
-  font-size: 28px;
 }

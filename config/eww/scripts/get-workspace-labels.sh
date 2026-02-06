@@ -1,56 +1,104 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-declare -A APP_ICONS=(
+declare -A ICONS=(
   ["kitty"]=":kitty:"
   ["discord"]=":discord:"
+  ["vesktop"]=":discord:"
   ["obsidian"]=":obsidian:"
-  ["zen browser"]=":zen_browser:"
+  ["zen"]=":zen_browser:"
   ["firefox"]=":firefox:"
   ["spotify"]=":spotify:"
   ["steam"]=":steam:"
   ["factorio"]=":gear_old:"
-  ["jellyfin media player"]=":jellyfin:"
+  ["jellyfin"]=":jellyfin:"
   ["rofi"]=":spotlight:"
   ["tor browser"]=":tor_browser:"
   ["tidal-hifi"]=":tidal:"
+  ["filezilla"]=":filezilla:"
+  ["zed"]=":zed:"
+  ["mpv"]=":mpv:"
+  ["lm studio"]=":lm_studio:"
   ["default"]=":default:"
 )
 
-icons_to_json() {
-    local json="{"
-    for key in "${!APP_ICONS[@]}"; do
-        json+="\"$key\":\"${APP_ICONS[$key]}\","
-    done
-    json="${json%,}"
-    json+="}"
-    echo "$json"
+icon_for() {
+  local class="${1:-}"
+  local title="${2:-}"
+
+  # exact matches first
+  if [[ -n "${class}" && -n "${ICONS[$class]+x}" ]]; then
+    printf '%s\n' "${ICONS[$class]}"
+    return
+  fi
+  if [[ -n "${title}" && -n "${ICONS[$title]+x}" ]]; then
+    printf '%s\n' "${ICONS[$title]}"
+    return
+  fi
+
+  # patterns / aliases
+  case "$class" in
+    steam_app_* | cs2) printf '%s\n' "${ICONS[steam]}"; return ;;
+    *minecraft* | *prismlauncher*) printf '%s\n' ":minecraft:"; return ;;
+    *discord* | vesktop) printf '%s\n' "${ICONS[discord]}"; return ;;
+    *zed*) printf '%s\n' "${ICONS[zed]}"; return ;;
+  esac
+
+  case "$title" in
+    *discord*) printf '%s\n' "${ICONS[discord]}"; return ;;
+  esac
+
+  printf '%s\n' "${ICONS[default]}"
 }
 
-clients=$(hyprctl clients -j)
-workspaces=$(hyprctl workspaces -j)
-active_workspace=$(hyprctl activeworkspace -j)
-icons_json=$(icons_to_json)
+clients_json="$(hyprctl clients -j)"
+workspaces_json="$(hyprctl workspaces -j)"
+active_workspace_json="$(hyprctl activeworkspace -j)"
 
-echo "$workspaces" | jq --slurpfile clients <(echo "$clients") \
-                           --argjson active "$active_workspace" \
-                           --argjson icons "$icons_json" '
-[
-  .[]
-  | select(.id > 0 and (.name | test("^special:") | not))
-  | .id as $workspace_id
-  | {
-      id: $workspace_id,
-      name,
-      active: (.id == $active.id),
-      icons: (
-        $clients[0]
-        | map(
-            select(.workspace.id == $workspace_id)
-            | $icons[(.initialClass? | ascii_downcase)] // $icons[(.initialTitle? | ascii_downcase)] // $icons["default"]
-          )
-        | unique
-      )
-    }
-] | sort_by(.id)
+pairs="$(
+  jq -r '
+    .[]
+    | select(.workspace.id > 0)
+    | [
+        (.workspace.id | tostring),
+        ((.initialClass // .class // "") | ascii_downcase),
+        ((.initialTitle // .title // "") | ascii_downcase)
+      ]
+    | @tsv
+  ' <<<"$clients_json" |
+    while IFS=$'\t' read -r wsid cls ttl; do
+      icon="$(icon_for "$cls" "$ttl")"
+      printf '%s\t%s\n' "$wsid" "$icon"
+    done
+)"
+
+jq -n \
+  --argjson workspaces "$workspaces_json" \
+  --argjson active "$active_workspace_json" \
+  --arg pairs "$pairs" '
+  def parse_pairs($s):
+    ($s
+     | split("\n")
+     | map(select(length > 0) | split("\t"))
+     | map({ id: (.[0] | tonumber), icon: .[1] })
+     | sort_by(.id));
+
+  (
+    parse_pairs($pairs)
+    | group_by(.id)
+    | map({ (.[0].id | tostring): (map(.icon) | unique) })
+    | add
+  ) // {} as $iconmap
+  |
+  [
+    $workspaces[]
+    | select(.id > 0 and (.name | test("^special:") | not))
+    | {
+        id: .id,
+        name: .name,
+        active: (.id == $active.id),
+        icons: ($iconmap[(.id | tostring)] // [])
+      }
+  ]
+  | sort_by(.id)
 '
-
