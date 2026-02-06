@@ -48,6 +48,7 @@
     {
 		"type": "disk",
 		"key": "│  os age     {#keys}│",
+    "folders": ["/"],
         "format": "{15} days {16} hours"
 	},
     {
