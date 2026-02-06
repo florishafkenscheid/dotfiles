@@ -27,9 +27,9 @@ keymap('t', '<esc><esc>', '<c-\\><c-n>', opts)
 vim.g.loaded_netrw = 1
 vim.g.loader_netrwPlugin = 1
 
--- Tabs -> 4 spaces
-vim.opt.tabstop 	    = 4
-vim.opt.shiftwidth 	    = 4
+-- Tabs -> 2 spaces
+vim.opt.tabstop 	    = 2
+vim.opt.shiftwidth 	    = 2
 vim.opt.expandtab	    = true
 
 -- Line numbers
