@@ -31,6 +31,8 @@ zstyle ':omz:update' mode auto      # update automatically without asking
 # Uncomment the following line to change how often to auto-update (in days).
 zstyle ':omz:update' frequency 2
 
+zstyle ':omz:update' verbosity silent
+
 # Uncomment the following line if pasting URLs and other text is messed up.
 # DISABLE_MAGIC_FUNCTIONS="true"
 
@@ -38,7 +40,7 @@ zstyle ':omz:update' frequency 2
 # DISABLE_LS_COLORS="true"
 
 # Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
+DISABLE_AUTO_TITLE="true"
 
 # Uncomment the following line to enable command auto-correction.
 ENABLE_CORRECTION="true"
@@ -116,16 +118,9 @@ alias icat="kitten icat --align left"
 alias cd="z"
 alias ls="exa -lah --no-permissions --no-user --group-directories-last"
 alias tree="exa --tree"
-alias cat="bat"
+alias cat="bat -p"
 alias ssh="kitty +kitten ssh"
 export TERM=xterm-256color
-
-factorio() {
-    LD_PRELOAD=/usr/lib64/libhugetlbfs.so \
-    HUGETLB_MORECORE=thp \
-    HUGETLB_RESTRICT_EXE=factorio \
-    command factorio "$@"
-}
 
 switch-audio() {
     current=$(pactl get-default-sink)
@@ -144,6 +139,28 @@ switch-audio() {
     done
 }
 
+icat-all() {
+    emulate -L zsh
+    setopt pipefail null_glob
+
+    local dir="${1:-.}"
+
+    if [[ ! -d $dir ]]; then
+        print -u2 "Not a directory: $dir"
+        return 1
+    fi
+
+    local -a imgs
+    imgs=("$dir"/*.(png|jpg|jpeg|gif)(.Om))
+
+    if (( ${#imgs} == 0 )); then
+        print -u2 "No images in $dir"
+        return 1
+    fi
+
+    kitty +kitten icat --align left -- "${imgs[@]}"
+}
+
 export PATH=$PATH:/home/blousy/.spicetify
 
 # Load zoxide
@@ -160,4 +177,11 @@ export FZF_DEFAULT_OPTS='--multi --no-height --extended'
 zstyle ':completion:*:git-checkout:*' sort false
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' menu no
+
+# Git
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/home/blousy/.lmstudio/bin"
+# End of LM Studio CLI section
 
