@@ -1,7 +1,7 @@
 (defwidget mullvad []
   (button
     :onclick "scripts/toggle-mullvad.sh"
-    :class "mullvad ${mullvad_status} island" 
+    :class "mullvad ${mullvad_status} widget" 
     (box :orientation "h"
       (label :text "󰳌" :visible "${mullvad_status == "connected"}")
       (label :text "󰦜" :visible "${mullvad_status == "disconnected"}")

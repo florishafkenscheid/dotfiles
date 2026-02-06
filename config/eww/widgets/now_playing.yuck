@@ -4,12 +4,11 @@
     :onhoverlost "${EWW_CMD} update show_song=false"
     
     (box 
-      :class "island spotify"
+      :class "spotify widget"
       :orientation "h"
       :space-evenly false
-      :spacing 14
 
-      (label :text "♫")
+      (label :class "spotify-icon" :text "♫")
 
       (revealer 
         :transition "slideright"
@@ -20,12 +19,12 @@
         (box 
           :orientation "h" 
           :space-evenly false
-          :spacing 15
+          :spacing 12
           :visible {strlength(now_playing_data) > 0}
           (label
             :class "song-title"
             :text "${now_playing_data.title}"
-            :limit-width 35
+            :limit-width 30
             :truncate true
             :show-truncated false
           )

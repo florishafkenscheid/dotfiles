@@ -1,0 +1,15 @@
+(defwidget system_badge []
+  (box
+    :class "system-badge island"
+    :orientation "h"
+    :space-evenly false
+    :spacing 8
+    :valign "center"
+    
+    (label
+      :class "logo-icon"
+      :text ""
+      :tooltip "Arch Linux"
+    )
+  )
+)

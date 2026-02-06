@@ -1,33 +1,37 @@
 (defwidget bar []
   (box :class "bar-container"
     (centerbox :orientation "h"
-      (box 
-        :class "left" 
-        :halign "start" 
+      ; Left section - system stats
+      (box
+        :class "left-section"
+        :halign "start"
         :orientation "h"
         :space-evenly false
-        :spacing 10
-  
+        :spacing 16
+        (system_badge)
         (cpu_gpu)
+        (label :class "section-divider" :text "│")
         (memory)
       )
-  
+
+      ; Middle section - workspaces
       (box
-        :class "middle"
+        :class "middle-section"
         :halign "center"
-  
         (workspaces)
       )
-  
+
+      ; Right section - status indicators
       (box
-        :class "right"
+        :class "right-section"
         :halign "end"
         :orientation "h"
         :space-evenly false
-        :spacing 10
-  
+        :spacing 16
         (now_playing)
+        (label :class "section-divider" :text "│")
         (mullvad)
+        (label :class "section-divider" :text "│")
         (clock)
       )
     )

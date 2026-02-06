@@ -5,6 +5,7 @@
 (include "./widgets/memory.yuck")
 (include "./widgets/mullvad.yuck")
 (include "./widgets/now_playing.yuck")
+(include "./widgets/system_badge.yuck")
 (include "./widgets/workspaces.yuck")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,54 +34,7 @@
   "while true; do playerctl --follow metadata --format '{\"title\": \"{{title}}\", \"artist\": \"{{artist}}\"}' ; done")
 
 ; Get workspaces and if they're active or not
-(defpoll workspace_labels :interval "1s" "scripts/get-workspace-labels.sh")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; CPU && GPU temps window, add more if more monitors
-(defwindow temps_popup
-  :monitor 0
-  :geometry (geometry :x "0.55%"
-                      :y "0%"
-            )
-  :stacking "overlay"
-  :focusable "false"
-  (revealer 
-    :transition "slidedown"
-    :reveal show_temps
-    :duration "175ms"
-    (box
-      :class "island temps-popup-content hardware-popup-content popup"
-      (label :text temps_string)
-    )
-  )
-)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Memory Usage window, same as CPU && GPU temps window
-(defwindow memory_popup
-  :monitor 0
-  :geometry (geometry :x "6.6%"
-                      :y "0%"
-            )
-  :stacking "overlay"
-  :focusable "false"
-  (revealer 
-    :transition "slidedown"
-    :reveal show_memory 
-    :duration "175ms"
-    (box
-      :class "island temps-popup-content hardware-popup-content popup"
-      :orientation "v"
-      :spacing 4
-      (label
-        :text "${round(EWW_RAM.used_mem / 1073741824, 1)}GB / ${round(EWW_RAM.total_mem / 1073741824, 1)}GB"
-      )
-      (label
-        :text "󰂻 HugePages: ${hugepages_count}"
-      )
-    )
-  )
-)
+(defpoll workspace_labels :interval "0.1s" "scripts/get-workspace-labels.sh")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Defining the top bars
