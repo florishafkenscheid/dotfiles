@@ -20,7 +20,30 @@ return {
         ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
     },
 
-    signature = { enabled = true }
+    completion = {
+      menu = {
+        draw = {
+          columns = {
+            { "kind_icon", "label", "label_description", gap = 1 },
+            { "kind" },
+          },
+        },
+      },
+      documentation = {
+        auto_show = true,
+        auto_show_delay_ms = 200,
+      },
+    },
+
+    signature = { enabled = true },
+
+    sources = {
+      default = { "lsp", "path", "snippets", "buffer" },
+
+      per_filetype = {
+        python = { "lsp", "snippets", "buffer" },
+      },
+    },
   },
   opts_extend = { "sources.default" }
 }

@@ -49,9 +49,12 @@ return {
         })
 
         vim.lsp.enable('rust_analyzer')
+        vim.lsp.enable('ty')
+        vim.lsp.enable('lua_ls')
+        vim.lsp.enable('dcm')
 
         vim.api.nvim_create_autocmd('BufWritePre', {
-            pattern = '*.rs',
+            pattern = '*.rs, *.py',
             callback = function(ev)
                 vim.lsp.buf.format({
                     bufnr = ev.buf,

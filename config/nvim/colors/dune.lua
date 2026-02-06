@@ -68,6 +68,16 @@ typescriptVariable = {link = "Function"},
 typescriptTypeReference = {link = "Function"},
 typescriptOperator = {link = "Function"},
 typescriptIdentifierName = {link = "Function"},
+BlinkCmpMenu = { fg = "#dddddd", bg = "#151515" },
+BlinkCmpMenuBorder = { fg = "#444444", bg = "#151515" },
+BlinkCmpMenuSelection = { fg = "#ffffff", bg = "#303030", bold = true },
+BlinkCmpLabel = { fg = "#dddddd" },
+BlinkCmpLabelDescription = { fg = "#999999" },
+BlinkCmpLabelDetail = { fg = "#888888" },
+BlinkCmpKind = { fg = "#b0b0ff" },
+BlinkCmpSource = { fg = "#8888aa" },
+BlinkCmpDoc = { fg = "#dddddd", bg = "#101010" },
+BlinkCmpDocBorder = { fg = "#444444", bg = "#101010" },
 }
 
 vim.cmd("highlight clear")
