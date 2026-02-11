@@ -12,7 +12,6 @@
             :class "workspace-icons"
             :orientation "h"
             :space-evenly false
-            :spacing 6
             :visible {workspace.icons != "[]"}
             (label :class "icon-label" :text {workspace.icons[0] ?: ""})
             (label :class "icon-label" :text {workspace.icons[1] ?: ""})
