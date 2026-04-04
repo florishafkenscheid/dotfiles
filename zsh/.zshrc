@@ -119,7 +119,8 @@ alias cd="z"
 alias ls="exa -lah --no-permissions --no-user --group-directories-last"
 alias tree="exa --tree"
 alias cat="bat -p"
-alias ssh="kitty +kitten ssh"
+alias ssh="mullvad-exclude kitty +kitten ssh"
+alias yay="mullvad-exclude yay"
 export TERM=xterm-256color
 
 switch-audio() {
