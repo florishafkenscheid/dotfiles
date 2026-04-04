@@ -1,6 +1,6 @@
-(defwidget workspaces []
+(defwidget workspaces [workspace_data]
   (box :class "workspaces-container" :orientation "h" :space-evenly false :spacing 6
-    (for workspace in workspace_labels
+    (for workspace in workspace_data
       (button
         :class "workspace-btn${workspace.active ? " active" : ""}"
         :onclick "hyprctl dispatch workspace ${workspace.id}"

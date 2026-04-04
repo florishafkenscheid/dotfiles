@@ -1,4 +1,4 @@
-(defwidget bar []
+(defwidget bar [workspace_data]
   (box :class "bar-container"
     (centerbox :orientation "h"
       ; Left section - system stats
@@ -18,7 +18,7 @@
       (box
         :class "middle-section"
         :halign "center"
-        (workspaces)
+        (workspaces :workspace_data workspace_data)
       )
 
       ; Right section - status indicators

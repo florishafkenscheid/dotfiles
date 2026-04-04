@@ -26,15 +26,14 @@
 (defpoll hugepages_count :interval "5s" "cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages")
 
 ; Mullvad status
-(defpoll mullvad_status :interval "1s" "mullvad status -j | jq -r '.state'")
+(defpoll mullvad_status :interval "5s" "mullvad status -j | jq -r '.state'")
 
-; Now playing (using playerctl, limited to spotify_player)
-(defvar show_song false)
-(deflisten now_playing_data :initial '{"title": "Nothing Playing", "artist": ""}'
-  "while true; do playerctl --follow metadata --format '{\"title\": \"{{title}}\", \"artist\": \"{{artist}}\"}' ; done")
+; Now playing (using playerctl, limited to tidal-hifi)
+(defpoll now_playing_data :interval "2s" `scripts/get-now-playing.sh`)
 
-; Get workspaces and if they're active or not
-(defpoll workspace_labels :interval "0.1s" "scripts/get-workspace-labels.sh")
+; Get workspaces and if they're active or not, per monitor
+(deflisten workspace_labels_primary :initial "[]" `scripts/listen-workspace-labels.sh DP-2`)
+(deflisten workspace_labels_secondary :initial "[]" `scripts/listen-workspace-labels.sh HDMI-A-1`)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Defining the top bars
@@ -50,7 +49,7 @@
            :exclusive "true"
            :focusable "ondemand"
            :namespace "bar"
-           (bar)
+           (bar :workspace_data workspace_labels_primary)
 )
 
 (defwindow bar_secondary
@@ -65,5 +64,5 @@
            :exclusive "true"
            :focusable "ondemand"
            :namespace "bar"
-           (bar)
+           (bar :workspace_data workspace_labels_secondary)
 )

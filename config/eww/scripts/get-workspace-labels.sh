@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+monitor_filter="${1:-}"
+
 declare -A ICONS=(
   ["kitty"]=":kitty:"
   ["discord"]=":discord:"
@@ -20,6 +22,8 @@ declare -A ICONS=(
   ["mpv"]=":mpv:"
   ["lm studio"]=":lm_studio:"
   ["default"]=":default:"
+  ["code"]=":code:"
+  ["gimp"]=":gimp:"
 )
 
 icon_for() {
@@ -38,7 +42,7 @@ icon_for() {
 
   # patterns / aliases
   case "$class" in
-    steam_app_* | cs2) printf '%s\n' "${ICONS[steam]}"; return ;;
+    steam_app_* | cs2 | gamescope) printf '%s\n' "${ICONS[steam]}"; return ;;
     *minecraft* | *prismlauncher*) printf '%s\n' ":minecraft:"; return ;;
     *discord* | vesktop) printf '%s\n' "${ICONS[discord]}"; return ;;
     *zed*) printf '%s\n' "${ICONS[zed]}"; return ;;
@@ -51,13 +55,13 @@ icon_for() {
   printf '%s\n' "${ICONS[default]}"
 }
 
-clients_json="$(hyprctl clients -j)"
-workspaces_json="$(hyprctl workspaces -j)"
-active_workspace_json="$(hyprctl activeworkspace -j)"
+batch_json="$(
+  hyprctl --batch "j/clients;j/workspaces;j/monitors" | jq -cs .
+)"
 
 pairs="$(
   jq -r '
-    .[]
+    .[0][]
     | select(.workspace.id > 0)
     | [
         (.workspace.id | tostring),
@@ -65,7 +69,7 @@ pairs="$(
         ((.initialTitle // .title // "") | ascii_downcase)
       ]
     | @tsv
-  ' <<<"$clients_json" |
+  ' <<<"$batch_json" |
     while IFS=$'\t' read -r wsid cls ttl; do
       icon="$(icon_for "$cls" "$ttl")"
       printf '%s\t%s\n' "$wsid" "$icon"
@@ -73,8 +77,9 @@ pairs="$(
 )"
 
 jq -n \
-  --argjson workspaces "$workspaces_json" \
-  --argjson active "$active_workspace_json" \
+  --argjson workspaces "$(jq -c '.[1]' <<<"$batch_json")" \
+  --argjson monitors "$(jq -c '.[2]' <<<"$batch_json")" \
+  --arg monitor_filter "$monitor_filter" \
   --arg pairs "$pairs" '
   def parse_pairs($s):
     ($s
@@ -90,13 +95,27 @@ jq -n \
     | add
   ) // {} as $iconmap
   |
+  (
+    $monitors
+    | map({
+        key: (.name // (.id | tostring)),
+        value: (.activeWorkspace.id // 0)
+      })
+    | from_entries
+  ) as $active_by_monitor
+  |
   [
     $workspaces[]
     | select(.id > 0 and (.name | test("^special:") | not))
+    | select(
+        $monitor_filter == ""
+        or .monitor == $monitor_filter
+        or ((.monitorID // -1) | tostring) == $monitor_filter
+      )
     | {
         id: .id,
         name: .name,
-        active: (.id == $active.id),
+        active: (.id == ($active_by_monitor[(.monitor // ((.monitorID // -1) | tostring))] // 0)),
         icons: ($iconmap[(.id | tostring)] // [])
       }
   ]
