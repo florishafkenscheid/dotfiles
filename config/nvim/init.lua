@@ -7,17 +7,17 @@ local opts = { noremap = true, silent = true }
 local keymap = vim.api.nvim_set_keymap
 
 -- <leader> key
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
 
 -- Enter = new line below
-keymap('n', '<Enter>', 'o<ESC>', opts)
+keymap("n", "<Enter>", "o<ESC>", opts)
 
 -- Shift Enter = new line above
-keymap('n', 'SHIFT<Enter>', 'O<ESC>', opts)
+keymap("n", "SHIFT<Enter>", "O<ESC>", opts)
 
 -- Exit terminal mode easier
-keymap('t', '<esc><esc>', '<c-\\><c-n>', opts)
+keymap("t", "<esc><esc>", "<c-\\><c-n>", opts)
 
 --------------------
 --    Options     --
@@ -28,16 +28,36 @@ vim.g.loaded_netrw = 1
 vim.g.loader_netrwPlugin = 1
 
 -- Tabs -> 2 spaces
-vim.opt.tabstop 	    = 2
-vim.opt.shiftwidth 	    = 2
-vim.opt.expandtab	    = true
+vim.opt.tabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.expandtab = true
 
 -- Line numbers
-vim.opt.number          = true
-vim.opt.relativenumber  = true
+vim.opt.number = true
+vim.opt.relativenumber = true
+
+-- Horizontal separator
+vim.opt.laststatus = 3
 
 -- Enable 24-bit colour
 vim.opt.termguicolors = true
+
+-- Configure diagnostics
+vim.diagnostic.config({
+	virtual_text = {
+		prefix = "",
+		suffix = "\t",
+		spacing = 4,
+		source = "if_many",
+		format = function(diagnostic)
+			return diagnostic.message
+		end,
+	},
+	signs = true,
+	underline = true,
+	update_in_insert = false,
+	severity_sort = true,
+})
 
 --------------------
 --    Plugins     --
@@ -52,7 +72,7 @@ if not vim.loop.fs_stat(lazypath) then
 		"--filter=blob:none",
 		"--branch=stable",
 		"https://github.com/folke/lazy.nvim.git",
-		lazypath
+		lazypath,
 	})
 end
 vim.opt.rtp:prepend(lazypath)
@@ -65,4 +85,4 @@ require("blousy.floaterminal")
 --------------------
 --  Colorscheme   --
 --------------------
-vim.cmd.colorscheme('dune')
+vim.cmd.colorscheme("dune")

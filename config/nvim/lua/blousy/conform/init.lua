@@ -11,6 +11,7 @@ return {
 				markdown = { "prettier" },
 				lua = { "stylua" },
 				rust = { "rustfmt" },
+        cpp = { "clang-format" },
 			},
 			format_on_save = {
 				lsp_fallback = true,
