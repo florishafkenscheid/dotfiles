@@ -1,38 +1,28 @@
 (defwidget now_playing []
-  (eventbox
-    :onhover "${EWW_CMD} update show_song=true" 
-    :onhoverlost "${EWW_CMD} update show_song=false"
-    
-    (box 
-      :class "spotify widget"
-      :orientation "h"
+  (box
+    :class "spotify widget"
+    :orientation "v"
+    :space-evenly false
+    :spacing 2
+
+    (box
+      :class "now-playing-text"
+      :orientation "v"
       :space-evenly false
-
-      (label :class "spotify-icon" :text "♫")
-
-      (revealer 
-        :transition "slideright"
-        :reveal show_song
-        :duration "175ms"
-        :class "spotify-revealer"
-
-        (box 
-          :orientation "h" 
-          :space-evenly false
-          :spacing 12
-          :visible {strlength(now_playing_data) > 0}
-          (label
-            :class "song-title"
-            :text "${now_playing_data.title}"
-            :limit-width 30
-            :truncate true
-            :show-truncated false
-          )
-          (label
-            :class "song-artist"
-            :text " ${now_playing_data.artist}"
-          )
-        )
+      (label
+        :class "song-title"
+        :text "${now_playing_data.title}"
+        :limit-width 30
+        :truncate true
+        :show-truncated false
+      )
+      (label
+        :class "song-artist"
+        :text "${now_playing_data.artist}"
+        :visible {strlength(now_playing_data.artist) > 0}
+        :limit-width 30
+        :truncate true
+        :show-truncated false
       )
     )
   )

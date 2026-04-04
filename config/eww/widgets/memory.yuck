@@ -1,7 +1,7 @@
 (defwidget memory []
   (eventbox
-    :onhover "${EWW_CMD} update show_memory=true && ${EWW_CMD} update memory_hovered=true"
-    :onhoverlost "${EWW_CMD} update show_memory=false && ${EWW_CMD} update memory_hovered=false"
+    :onhover "${EWW_CMD} update show_memory=true memory_hovered=true"
+    :onhoverlost "${EWW_CMD} update show_memory=false memory_hovered=false"
     (box :class {hugepages_count > 4 ? "memory-widget widget hugepages-active" : "memory-widget widget"}
          :orientation "h"
          :valign "center"

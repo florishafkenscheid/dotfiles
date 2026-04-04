@@ -6,96 +6,99 @@ $spice-orange: rgb(215, 127, 0);
 $deep-black: rgba(8, 6, 4, 0.92);
 
 * {
-    all: unset;
-    font-family: "MesloLGM Nerd Font Propo";
+  all: unset;
+  font-family: "MesloLGM Nerd Font Propo";
 }
 
 /* Unified Bar Container */
 .bar-container {
-    font-size: $font-size-base;
-    background: linear-gradient(
-        180deg,
-        $deep-black 0%,
-        rgba(12, 8, 4, 0.95) 100%
-    );
-    border-bottom: 2px solid $spice-orange;
-    padding: 0.4em 1em;
+  font-size: $font-size-base;
+  background: linear-gradient(180deg,
+      $deep-black 0%,
+      rgba(12, 8, 4, 0.95) 100%);
+  border-bottom: 2px solid $spice-orange;
+  padding: 0.4em 1em;
 }
 
 /* Section dividers */
 .section-divider {
-    color: rgba(215, 127, 0, 0.4);
-    font-size: 0.8em;
-    padding: 0 0.5em;
+  color: rgba(215, 127, 0, 0.4);
+  font-size: 0.8em;
+  padding: 0 0.5em;
 }
 
 /* Widget groups - spacing is handled in yuck */
 
 /* Individual widgets - no island, just content */
 .widget {
-    padding: 0.2em 0.4em;
+  padding: 0.2em 0.4em;
 }
 
 /* Hover highlight for interactive widgets */
 .widget:hover {
-    background-color: rgba(215, 127, 0, 0.15);
-    border-radius: 0.3em;
+  background-color: rgba(215, 127, 0, 0.15);
+  border-radius: 0.3em;
 }
 
 /* CPU/GPU spacing handled in yuck */
 
 .cpu-usage,
 .gpu-usage {
-    color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Spice accent for GPU (the "hotter" component) */
 .gpu-usage {
-    color: rgba(255, 140, 40, 0.95);
+  color: rgba(255, 140, 40, 0.95);
 }
 
 .clock {
-    font-family: "MesloLGM Nerd Font Mono";
-    color: rgba(255, 255, 255, 0.95);
-    font-weight: 500;
+  font-family: "MesloLGM Nerd Font Mono";
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
 }
 
 .spotify {
-    color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9);
+  min-width: 0;
 }
 
-.spotify-icon {
-    font-family: "sketchybar-app-font";
-    color: $spice-orange;
-    padding-right: 0.4em;
+.now-playing-text {
+  padding-right: 0.2em;
 }
 
-.spotify-revealer {
-    padding-right: 0.8em;
+.song-title {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.57em;
+}
+
+.song-artist {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.45em;
 }
 
 /* Font & sizes - Relative Scaling */
 .icon-label {
-    font-family: "sketchybar-app-font";
-    font-size: 0.9em;
-    color: rgba(255, 255, 255, 0.8);
+  font-family: "sketchybar-app-font";
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .mullvad {
-    font-size: 1em;
-    padding: 0.2em 0.4em;
+  font-size: 1em;
+  padding: 0.2em 0.4em;
 }
 
 .mullvad.connected {
-    color: $spice-orange;
+  color: $spice-orange;
 }
 
 .mullvad.disconnected {
-    color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .mullvad.connecting {
-    color: rgba(255, 180, 80, 0.8);
+  color: rgba(255, 180, 80, 0.8);
 }
 
 .cpu-usage,
@@ -103,49 +106,49 @@ $deep-black: rgba(8, 6, 4, 0.92);
 .memory-widget,
 .workspace-btn,
 .clock {
-    font-size: 1em;
+  font-size: 1em;
 }
 
 .memory-widget {
-    color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .memory-widget.hugepages-active {
-    color: rgb(255, 160, 60);
+  color: rgb(255, 160, 60);
 }
 
 .popup {
-    font-size: 2em;
-    background-color: rgba(8, 6, 4, 0.95);
-    border: 2px solid $spice-orange;
-    border-radius: 0.3em;
-    padding: 0.5em 0.8em;
+  font-size: 2em;
+  background-color: rgba(8, 6, 4, 0.95);
+  border: 2px solid $spice-orange;
+  border-radius: 0.3em;
+  padding: 0.5em 0.8em;
 }
 
 /* Workspaces - unified style (spacing in yuck) */
 
 .workspace-btn {
-    padding: 0.2em 0.4em 0.2em 0.4em;
-    color: rgba(255, 255, 255, 0.5);
-    border-bottom: 2px solid transparent;
-    transition: all 0.15s ease;
+  padding: 0.2em 0.4em 0.2em 0.4em;
+  color: rgba(255, 255, 255, 0.5);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
 }
 
 .workspace-btn:hover {
-    color: rgba(255, 255, 255, 0.8);
-    background-color: rgba(215, 127, 0, 0.1);
-    border-radius: 0.2em;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(215, 127, 0, 0.1);
+  border-radius: 0.2em;
 }
 
 /* Active workspace - spice glow underline */
 .workspace-btn.active {
-    color: $spice-orange;
-    border-bottom: 2px solid $spice-orange;
-    background-color: rgba(215, 127, 0, 0.12);
-    border-radius: 0.2em;
+  color: $spice-orange;
+  border-bottom: 2px solid $spice-orange;
+  background-color: rgba(215, 127, 0, 0.12);
+  border-radius: 0.2em;
 }
 
 /* App icons in workspace (spacing in yuck) */
 .workspace-icons {
-    margin-left: 0.4em;
+  margin-left: 0.4em;
 }
