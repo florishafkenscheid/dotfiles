@@ -21,11 +21,10 @@ fi
 if grim -g "$GEOMETRY" "$TEMP_PNG"; then
     if [ -s "$TEMP_PNG" ]; then
         cat "$TEMP_PNG" | tee "$FILENAME" | wl-copy
-        notify-send "Screenshot" "Saved and copied" -i "$FILENAME"
+        notify-send "Screenshot" "Saved and copied" -i "$FILENAME" -t 10000
     else
         notify-send "Screenshot Failed" "Grim created an empty image file for the selection."
     fi
 else
     notify-send "Screenshot Failed" "Grim encountered an error while capturing the screen."
 fi
-

@@ -198,6 +198,40 @@ get_saved_player() {
     fi
 }
 
+# Get player status, normalizing empty/error responses
+get_player_status() {
+    local player="$1"
+    local status
+    status=$(playerctl -p "$player" status 2>/dev/null || true)
+
+    case "$status" in
+        Playing|Paused|Stopped) printf '%s\n' "$status" ;;
+        *) printf '%s\n' "Unknown" ;;
+    esac
+}
+
+# Return the single playing player, or nothing if selection is ambiguous
+get_single_playing_player() {
+    local players="$1"
+    local playing_player=""
+    local playing_count=0
+    local player status
+
+    while IFS= read -r player; do
+        [ -z "$player" ] && continue
+
+        status=$(get_player_status "$player")
+        if [ "$status" = "Playing" ]; then
+            playing_count=$((playing_count + 1))
+            playing_player="$player"
+        fi
+    done <<< "$players"
+
+    if [ "$playing_count" -eq 1 ]; then
+        printf '%s\n' "$playing_player"
+    fi
+}
+
 # Main logic
 main() {
     local players
@@ -220,32 +254,38 @@ main() {
         target_player="$players"
         save_selected_player "$target_player"
     else
-        # Multiple players - always show menu
+        target_player=$(get_single_playing_player "$players")
+
+        # Multiple players only need the menu when state does not identify one target
+        if [ -n "$target_player" ]; then
+            save_selected_player "$target_player"
+        else
         # Get saved player to pre-select it
-        local saved_player
-        local selected_idx=0
-        saved_player=$(get_saved_player)
-        
-        # Find index of saved player for pre-selection
-        if [ -n "$saved_player" ]; then
-            selected_idx=$(get_player_index "$players" "$saved_player")
-            [ "$selected_idx" -lt 0 ] && selected_idx=0
+            local saved_player
+            local selected_idx=0
+            saved_player=$(get_saved_player)
+
+            # Find index of saved player for pre-selection
+            if [ -n "$saved_player" ]; then
+                selected_idx=$(get_player_index "$players" "$saved_player")
+                [ "$selected_idx" -lt 0 ] && selected_idx=0
+            fi
+
+            target_player=$(show_rofi_menu "$players" "$selected_idx")
+
+            # User cancelled rofi
+            if [ -z "$target_player" ]; then
+                exit 0
+            fi
+
+            # Validate selection is still valid
+            if ! echo "$players" | grep -qx "$target_player"; then
+                notify-send "Media Control" "Selected player no longer available" 2>/dev/null || true
+                exit 1
+            fi
+
+            save_selected_player "$target_player"
         fi
-        
-        target_player=$(show_rofi_menu "$players" "$selected_idx")
-        
-        # User cancelled rofi
-        if [ -z "$target_player" ]; then
-            exit 0
-        fi
-        
-        # Validate selection is still valid
-        if ! echo "$players" | grep -qx "$target_player"; then
-            notify-send "Media Control" "Selected player no longer available" 2>/dev/null || true
-            exit 1
-        fi
-        
-        save_selected_player "$target_player"
     fi
     
     # Execute action on selected player
