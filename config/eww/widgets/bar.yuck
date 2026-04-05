@@ -30,6 +30,8 @@
         :spacing 16
         (now_playing)
         (label :class "section-divider" :text "│")
+        (volume_control)
+        (label :class "section-divider" :text "│")
         (mullvad)
         (label :class "section-divider" :text "│")
         (clock)

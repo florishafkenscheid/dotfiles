@@ -77,6 +77,57 @@ $deep-black: rgba(8, 6, 4, 0.92);
   font-size: 0.45em;
 }
 
+.volume-control {
+  color: rgba(255, 255, 255, 0.92);
+  min-width: 0;
+}
+
+.volume-icon-button {
+  padding: 0;
+}
+
+.volume-icon {
+  font-size: 0.9em;
+}
+
+.volume-percent,
+.volume-target {
+  font-family: "MesloLGM Nerd Font Mono";
+  font-size: 0.5em;
+}
+
+.volume-percent {
+  color: rgba(255, 255, 255, 0.92);
+  min-width: 2.8em;
+}
+
+.volume-target {
+  color: rgba(215, 127, 0, 0.75);
+  min-width: 1.1em;
+}
+
+.volume-slider {
+  min-width: 7em;
+}
+
+.volume-slider trough {
+  min-height: 0.2em;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+.volume-slider highlight {
+  background-color: rgba(215, 127, 0, 0.9);
+  border-radius: 999px;
+}
+
+.volume-slider slider {
+  min-width: 0.45em;
+  min-height: 0.45em;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+}
+
 /* Font & sizes - Relative Scaling */
 .icon-label {
   font-family: "sketchybar-app-font";

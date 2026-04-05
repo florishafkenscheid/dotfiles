@@ -6,6 +6,7 @@
 (include "./widgets/mullvad.yuck")
 (include "./widgets/now_playing.yuck")
 (include "./widgets/system_badge.yuck")
+(include "./widgets/volume_control.yuck")
 (include "./widgets/workspaces.yuck")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -30,6 +31,10 @@
 
 ; Now playing (using playerctl, limited to tidal-hifi)
 (defpoll now_playing_data :interval "2s" `scripts/get-now-playing.sh`)
+
+; Volume control (Tidal player volume when active, otherwise default sink)
+(defvar show_volume_slider false)
+(defpoll volume_data :interval "1s" `scripts/get-volume.sh`)
 
 ; Get workspaces and if they're active or not, per monitor
 (deflisten workspace_labels_primary :initial "[]" `scripts/listen-workspace-labels.sh DP-2`)
