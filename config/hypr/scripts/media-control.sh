@@ -122,17 +122,61 @@ get_status_icon() {
     esac
 }
 
-# Get formatted player info for rofi: "icon player    status    title - artist"
+# Map raw MPRIS player names to friendlier menu labels
+get_player_display_name() {
+    local player="$1"
+    local title identity fallback
+
+    title=$(playerctl -p "$player" metadata title 2>/dev/null | head -n1)
+    identity=$(playerctl -p "$player" metadata xesam:albumArtist 2>/dev/null | head -n1)
+
+    case "$player" in
+        tidal-hifi)
+            printf '%s\n' "Tidal"
+            ;;
+        firefox*|chromium*|brave*|google-chrome*)
+            if [ -n "$title" ]; then
+                printf '%s\n' "$title"
+            else
+                case "$player" in
+                    firefox*) printf '%s\n' "Firefox" ;;
+                    chromium*) printf '%s\n' "Chromium" ;;
+                    brave*) printf '%s\n' "Brave" ;;
+                    google-chrome*) printf '%s\n' "Chrome" ;;
+                esac
+            fi
+            ;;
+        *)
+            fallback=$(printf '%s' "$player" | sed -E 's/[._-]+/ /g; s/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g')
+            if [ -n "$fallback" ]; then
+                printf '%s\n' "$fallback" | awk '{ for (i = 1; i <= NF; i++) { $i = toupper(substr($i, 1, 1)) tolower(substr($i, 2)) } print }'
+            elif [ -n "$identity" ]; then
+                printf '%s\n' "$identity"
+            else
+                printf '%s\n' "$player"
+            fi
+            ;;
+    esac
+}
+
+# Get formatted player info for rofi: "icon player-label    status    title - artist"
 get_player_info() {
     local player="$1"
-    local icon status title artist
+    local icon status title artist display_name subtitle
     icon=$(get_status_icon "$player")
     status=$(playerctl -p "$player" status 2>/dev/null)
+    display_name=$(get_player_display_name "$player" | cut -c1-35)
     title=$(playerctl -p "$player" metadata title 2>/dev/null | cut -c1-30)
     artist=$(playerctl -p "$player" metadata artist 2>/dev/null | cut -c1-30)
-    
-    # Format: icon player (padded) status (padded) title - artist
-    printf "%-4s %-25s %-10s %s" "$icon" "$player" "$status" "${title:+$title}${artist:+ - $artist}"
+
+    if [ -n "$artist" ] && [ "$display_name" = "$title" ]; then
+        subtitle="$artist"
+    else
+        subtitle="${title:+$title}${artist:+ - $artist}"
+    fi
+
+    # Format: icon display-name (padded) status (padded) title - artist
+    printf "%-4s %-35s %-10s %s" "$icon" "$display_name" "$status" "$subtitle"
 }
 
 # Show rofi menu and return selected player name
@@ -153,12 +197,13 @@ show_rofi_menu() {
     menu_items=$(printf "%b" "$menu_items")
     
     # Show rofi, get selection (pre-select saved player)
-    local selection
-    selection=$(printf "%b" "$menu_items" | rofi -dmenu -i -p "Control Media" -selected-row "$selected_idx" -theme-str 'listview { lines: 6; }')
-    
-    # Extract player name (second column, trimmed)
-    if [ -n "$selection" ]; then
-        echo "$selection" | awk '{print $2}'
+    local selection_idx
+    selection_idx=$(printf "%b" "$menu_items" | rofi -dmenu -i -format i -selected-row "$selected_idx" -theme-str 'mainbox { children: [ listview ]; } listview { lines: 6; }')
+
+    if [ -n "$selection_idx" ]; then
+        sed -n "$((selection_idx + 1))p" <<EOF
+$players
+EOF
     fi
 }
 
