@@ -134,6 +134,9 @@ get_player_display_name() {
         tidal-hifi)
             printf '%s\n' "Tidal"
             ;;
+        JellyfinDesktop*)
+            printf '%s\n' "Jellyfin"
+            ;;
         firefox*|chromium*|brave*|google-chrome*)
             if [ -n "$title" ]; then
                 printf '%s\n' "$title"
@@ -159,24 +162,40 @@ get_player_display_name() {
     esac
 }
 
-# Get formatted player info for rofi: "icon player-label    status    title - artist"
+# Get formatted player info for rofi: "icon title/artist    status    player-label"
 get_player_info() {
     local player="$1"
-    local icon status title artist display_name subtitle
+    local icon status title artist display_name primary_text secondary_text source_label
     icon=$(get_status_icon "$player")
     status=$(playerctl -p "$player" status 2>/dev/null)
     display_name=$(get_player_display_name "$player" | cut -c1-35)
     title=$(playerctl -p "$player" metadata title 2>/dev/null | cut -c1-30)
     artist=$(playerctl -p "$player" metadata artist 2>/dev/null | cut -c1-30)
+    source_label="$display_name"
 
-    if [ -n "$artist" ] && [ "$display_name" = "$title" ]; then
-        subtitle="$artist"
+    case "$player" in
+        firefox*) source_label="Firefox" ;;
+        chromium*) source_label="Chromium" ;;
+        brave*) source_label="Brave" ;;
+        google-chrome*) source_label="Chrome" ;;
+    esac
+
+    if [ -n "$title" ]; then
+        primary_text="$title"
+    elif [ -n "$artist" ]; then
+        primary_text="$artist"
     else
-        subtitle="${title:+$title}${artist:+ - $artist}"
+        primary_text="$display_name"
     fi
 
-    # Format: icon display-name (padded) status (padded) title - artist
-    printf "%-4s %-35s %-10s %s" "$icon" "$display_name" "$status" "$subtitle"
+    if [ -n "$artist" ] && [ "$artist" != "$primary_text" ]; then
+        secondary_text="$artist"
+    else
+        secondary_text="$source_label"
+    fi
+
+    # Format: icon title/artist (padded) status (padded) player label
+    printf "%-4s %-35s %-10s %s" "$icon" "$primary_text" "$status" "$secondary_text"
 }
 
 # Show rofi menu and return selected player name
