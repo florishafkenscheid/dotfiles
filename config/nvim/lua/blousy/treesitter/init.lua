@@ -1,22 +1,30 @@
 return {
     "nvim-treesitter/nvim-treesitter",
-    event = { "BufReadPre", "BufNewFile" }, -- Only load when opening a file
-
+    lazy = false,
     build = ":TSUpdate", -- Update parsers on load
 
     config = function()
-        require("nvim-treesitter.configs").setup({
-            ensure_installed = {
-                "lua",
-                "c",
-                "cpp",
-                "rust",
-                "go",
-            },
+        local treesitter = require("nvim-treesitter")
+        local languages = {
+            "lua",
+            "c",
+            "cpp",
+            "rust",
+            "go",
+        }
 
-            sync_install = false,
+        treesitter.setup({
+            install_dir = vim.fn.stdpath("data") .. "/site",
+        })
 
-            auto_install = true, -- self explanatory
+        if vim.fn.executable("tree-sitter") == 1 then
+            treesitter.install(languages)
+        end
+
+        vim.api.nvim_create_autocmd("FileType", {
+            callback = function(args)
+                pcall(vim.treesitter.start, args.buf)
+            end,
         })
     end,
 }
