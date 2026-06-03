@@ -34,6 +34,7 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - [ ] Kitty - `~/.config/kitty/`
 - [ ] ~~Waybar - `~/.config/waybar/`~~ ↩️ *(Replaced by EWW)*
 - [x] EWW - `~/.config/eww/`
+- [x] hypridle - `~/.config/hypr/hypridle.conf`
 - [x] tuigreet - `/etc/greetd/config.toml`
 - [x] fastfetch - `~/.config/fastfetch/config.jsonc`
 - [x] rofi - `~/.config/rofi/config.rasi`
@@ -53,6 +54,13 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - Time
 - Spaces in middle or left, with name or icon of active window(s)
 - Spotify now playing
+
+### Idle Screensaver
+- `hypridle` starts a non-locking idle screensaver after 3 minutes.
+- The helper script is `~/.config/hypr/scripts/idle-screensaver.sh`.
+- The primary monitor switches to an empty workspace while the screensaver is active and restores the previous workspace on resume.
+- Runtime dependencies: `hypridle`, `mpvpaper`, and `mpv`.
+- Set `SCREENSAVER_VIDEO` in the script, or override it through the environment before starting Hyprland.
 
 ## Future
 For when I eventually get sick of this, or I simply want to try out different DE's, WM's, widget systems etc, I am compiling a list of interesting, yet not necessarily related projects to use.
