@@ -1,11 +1,42 @@
-(defwidget clock []
+(defwidget clock [calendar_window]
   (eventbox
+    :onclick "${EWW_CMD} open --toggle ${calendar_window}"
     :onhover "${EWW_CMD} update clock_is_hovered=true"
     :onhoverlost "${EWW_CMD} update clock_is_hovered=false"
-    :class "clock widget"
-    (label
-      :text "${clock_is_hovered ? gettime_long : gettime_short }"
-      :class "clock"
+    :class "clock-hover"
+    (box
+      :class "clock-widget"
+      :orientation "h"
+      :space-evenly false
+      :valign "center"
+      (label
+        :text "${gettime_short}"
+        :class "clock clock-label"
+      )
+      (revealer
+        :reveal {clock_is_hovered}
+        :transition "slideright"
+        :duration "180ms"
+        (label
+          :text "${gettime_seconds}"
+          :class "clock clock-seconds"
+        )
+      )
+    )
+  )
+)
+
+(defwidget clock_calendar []
+  (box :class "clock-calendar-popup"
+    (calendar
+      :class "clock-calendar"
+      :day {calendar_day}
+      :month {calendar_month}
+      :year {calendar_year}
+      :show-heading true
+      :show-day-names true
+      :show-week-numbers false
+      :show-details false
     )
   )
 )

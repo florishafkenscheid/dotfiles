@@ -10,6 +10,10 @@ $deep-black: rgba(8, 6, 4, 0.92);
   font-family: "MesloLGM Nerd Font Propo";
 }
 
+.idle-overlay {
+  background-color: black;
+}
+
 /* Unified Bar Container */
 .bar-container {
   font-size: $font-size-base;
@@ -52,10 +56,43 @@ $deep-black: rgba(8, 6, 4, 0.92);
   color: rgba(255, 140, 40, 0.95);
 }
 
+.clock-widget {
+  padding: 0.2em 0.65em;
+}
+
+.clock-hover:hover .clock-widget {
+  background-color: rgba(215, 127, 0, 0.15);
+  border-radius: 0.3em;
+  padding: 0.2em 0.65em;
+}
+
 .clock {
   font-family: "MesloLGM Nerd Font Mono";
   color: rgba(255, 255, 255, 0.95);
   font-weight: 500;
+}
+
+.clock-seconds {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.clock-calendar-popup {
+  background-color: rgba(8, 6, 4, 0.96);
+  border: 2px solid $spice-orange;
+  border-radius: 0.3em;
+  padding: 0.9em 0.9em;
+}
+
+.clock-calendar {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: "MesloLGM Nerd Font Mono";
+  font-size: 1.25em;
+}
+
+.clock-calendar:selected {
+  background-color: rgba(215, 127, 0, 0.95);
+  border-radius: 0.25em;
+  color: rgba(8, 6, 4, 0.96);
 }
 
 .spotify {
@@ -162,6 +199,11 @@ $deep-black: rgba(8, 6, 4, 0.92);
 
 .memory-widget {
   color: rgba(255, 255, 255, 0.9);
+}
+
+.memory-detail {
+  color: rgba(255, 255, 255, 0.72);
+  margin-left: 0.5em;
 }
 
 .memory-widget.hugepages-active {

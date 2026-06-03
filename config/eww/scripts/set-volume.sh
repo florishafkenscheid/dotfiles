@@ -7,6 +7,7 @@ STATE_FILE="/tmp/eww-tidal-volume"
 CACHE_FILE="/tmp/eww-volume-cache"
 LOCK_FILE="/tmp/eww-volume.lock"
 CACHE_TTL_MS=1500
+TIDAL_BINARY="${TIDAL_BINARY:-tidal-hifi}"
 
 now_ms() {
   date +%s%3N
@@ -38,6 +39,52 @@ is_tidal_playing() {
   [[ "$status" == "Playing" ]]
 }
 
+get_tidal_node_id() {
+  pactl list sink-inputs 2>/dev/null | awk -v binary="$TIDAL_BINARY" '
+    function emit_if_match() {
+      if (!printed && matched && object_id != "" && !corked) {
+        printed = 1
+        print object_id
+        exit
+      }
+    }
+
+    /^Sink Input #/ {
+      emit_if_match()
+      matched = 0
+      object_id = ""
+      corked = 0
+      next
+    }
+
+    /Corked: yes/ {
+      corked = 1
+      next
+    }
+
+    /application\.process\.binary = / {
+      if ($0 ~ "\"" binary "\"") {
+        matched = 1
+      }
+      next
+    }
+
+    /object\.id = / {
+      value = $0
+      sub(/^.*object\.id = "/, "", value)
+      sub(/".*$/, "", value)
+      object_id = value
+      next
+    }
+
+    END {
+      if (!printed) {
+        emit_if_match()
+      }
+    }
+  '
+}
+
 icon_for_percent() {
   local value="$1"
   local is_muted="$2"
@@ -62,16 +109,43 @@ clamp_percent() {
   }'
 }
 
+clamp_slider_percent() {
+  local value="${1:-0}"
+  awk -v value="$value" 'BEGIN {
+    if (value < 0) value = 0
+    if (value >= 99) value = 100
+    if (value > 100) value = 100
+    printf "%d", value + 0.5
+  }'
+}
+
 get_player_percent() {
-  local raw_volume
-  raw_volume="$(playerctl -p tidal-hifi volume 2>/dev/null || printf '0')"
-  awk -v value="$raw_volume" 'BEGIN { printf "%d", (value * 100) + 0.5 }'
+  local node_id raw_volume
+  node_id="$(get_tidal_node_id)"
+  [[ -n "$node_id" ]] || return 1
+
+  raw_volume="$(wpctl get-volume "$node_id" 2>/dev/null || printf 'Volume: 0.00')"
+  awk '{
+    for (i = 1; i <= NF; ++i) {
+      if ($i ~ /^[0-9]+(\.[0-9]+)?$/) {
+        printf "%d", ($i * 100) + 0.5
+        exit
+      }
+    }
+  }' <<<"$raw_volume"
 }
 
 set_player_percent() {
-  local percent
+  local node_id percent
+  node_id="$(get_tidal_node_id)"
+  [[ -n "$node_id" ]] || return 1
+
   percent="$(clamp_percent "$1")"
-  playerctl -p tidal-hifi volume "$(awk -v value="$percent" 'BEGIN { printf "%.2f", value / 100 }')"
+  wpctl set-volume "$node_id" "${percent}%"
+
+  if (( percent > 0 )); then
+    wpctl set-mute "$node_id" 0
+  fi
 }
 
 set_system_percent() {
@@ -131,12 +205,17 @@ toggle_player_mute() {
 exec 9>"$LOCK_FILE"
 flock 9
 
+tidal_node_id=""
 if is_tidal_playing; then
+  tidal_node_id="$(get_tidal_node_id || true)"
+fi
+
+if [[ -n "$tidal_node_id" ]]; then
   target="player"
   active=true
   case "$ACTION" in
     set)
-      percent="$(clamp_percent "$VALUE")"
+      percent="$(clamp_slider_percent "$VALUE")"
       set_player_percent "$percent"
       muted="$([[ "$percent" -le 0 ]] && printf 'true' || printf 'false')"
       write_cache "$target" "$percent" "$muted" "$active"
@@ -170,7 +249,7 @@ else
   active=false
   case "$ACTION" in
     set)
-      percent="$(clamp_percent "$VALUE")"
+      percent="$(clamp_slider_percent "$VALUE")"
       set_system_percent "$percent"
       muted=false
       write_cache "$target" "$percent" "$muted" "$active"

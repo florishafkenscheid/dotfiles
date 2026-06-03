@@ -8,6 +8,7 @@ icon="󰖀"
 active=false
 CACHE_FILE="/tmp/eww-volume-cache"
 CACHE_TTL_MS=1500
+TIDAL_BINARY="${TIDAL_BINARY:-tidal-hifi}"
 
 now_ms() {
   date +%s%3N
@@ -32,6 +33,52 @@ is_tidal_playing() {
   [[ "$status" == "Playing" ]]
 }
 
+get_tidal_node_id() {
+  pactl list sink-inputs 2>/dev/null | awk -v binary="$TIDAL_BINARY" '
+    function emit_if_match() {
+      if (!printed && matched && object_id != "" && !corked) {
+        printed = 1
+        print object_id
+        exit
+      }
+    }
+
+    /^Sink Input #/ {
+      emit_if_match()
+      matched = 0
+      object_id = ""
+      corked = 0
+      next
+    }
+
+    /Corked: yes/ {
+      corked = 1
+      next
+    }
+
+    /application\.process\.binary = / {
+      if ($0 ~ "\"" binary "\"") {
+        matched = 1
+      }
+      next
+    }
+
+    /object\.id = / {
+      value = $0
+      sub(/^.*object\.id = "/, "", value)
+      sub(/".*$/, "", value)
+      object_id = value
+      next
+    }
+
+    END {
+      if (!printed) {
+        emit_if_match()
+      }
+    }
+  '
+}
+
 icon_for_percent() {
   local value="$1"
   local is_muted="$2"
@@ -47,11 +94,26 @@ icon_for_percent() {
   fi
 }
 
+tidal_node_id=""
 if is_tidal_playing; then
-  raw_volume="$(playerctl -p tidal-hifi volume 2>/dev/null || printf '0')"
-  percent="$(awk -v value="$raw_volume" 'BEGIN { printf "%d", (value * 100) + 0.5 }')"
+  tidal_node_id="$(get_tidal_node_id || true)"
+fi
+
+if [[ -n "$tidal_node_id" ]]; then
+  raw_volume="$(wpctl get-volume "$tidal_node_id" 2>/dev/null || printf 'Volume: 0.00')"
+  percent="$(awk '{
+    for (i = 1; i <= NF; ++i) {
+      if ($i ~ /^[0-9]+(\.[0-9]+)?$/) {
+        printf "%d", ($i * 100) + 0.5
+        exit
+      }
+    }
+  }' <<<"$raw_volume")"
+  percent="${percent:-0}"
   target="player"
-  muted=$([[ "$percent" -le 0 ]] && printf 'true' || printf 'false')
+  if grep -q '\[MUTED\]' <<<"$raw_volume" || [[ "$percent" -le 0 ]]; then
+    muted=true
+  fi
   active=true
 else
   raw_volume="$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null || printf 'Volume: 0.00')"

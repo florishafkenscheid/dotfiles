@@ -12,8 +12,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Clock vars & polls
 (defvar clock_is_hovered false)
-(defpoll gettime_long :interval "1s" "date +'%H:%M:%S'")
 (defpoll gettime_short :interval "1s" "date +'%H:%M'")
+(defpoll gettime_seconds :interval "1s" "date +':%S'")
+(defpoll calendar_day :interval "1h" "date +'%-d'")
+(defpoll calendar_month :interval "1h" "date +'%-m'")
+(defpoll calendar_year :interval "1h" "date +'%Y'")
 
 ; CPU && GPU vars & polls
 ; cpu_percent is a magic value, no need to get it ourselves
@@ -32,7 +35,7 @@
 ; Now playing (using playerctl, limited to tidal-hifi)
 (defpoll now_playing_data :interval "2s" `scripts/get-now-playing.sh`)
 
-; Volume control (Tidal player volume when active, otherwise default sink)
+; Volume control (Tidal PipeWire stream when active, otherwise default sink)
 (defvar show_volume_slider false)
 (defpoll volume_data :interval "1s" `scripts/get-volume.sh`)
 
@@ -54,7 +57,7 @@
            :exclusive "true"
            :focusable "ondemand"
            :namespace "bar"
-           (bar :workspace_data workspace_labels_primary)
+           (bar :workspace_data workspace_labels_primary :calendar_window "calendar_primary")
 )
 
 (defwindow bar_secondary
@@ -69,5 +72,48 @@
            :exclusive "true"
            :focusable "ondemand"
            :namespace "bar"
-           (bar :workspace_data workspace_labels_secondary)
+           (bar :workspace_data workspace_labels_secondary :calendar_window "calendar_secondary")
+)
+
+(defwindow calendar_primary
+           :monitor '["<primary>", "DP-2", 0]'
+           :geometry (geometry :x "0.6%"
+                               :y "1%"
+                               :anchor "top right"
+                     )
+           :stacking "fg"
+           :exclusive "false"
+           :focusable "false"
+           :namespace "bar-calendar"
+           (clock_calendar)
+)
+
+(defwindow calendar_secondary
+           :monitor '["HDMI-A-1", 1]'
+           :geometry (geometry :x "0.6%"
+                               :y "1%"
+                               :anchor "top right"
+                     )
+           :stacking "fg"
+           :exclusive "false"
+           :focusable "false"
+           :namespace "bar-calendar"
+           (clock_calendar)
+)
+
+(defwindow idle_overlay
+           :monitor '["DP-2", 0]'
+           :geometry (geometry :width "100%"
+                               :height "100%"
+                               :anchor "center"
+                     )
+           :stacking "overlay"
+           :exclusive "false"
+           :focusable "false"
+           :namespace "idle-overlay"
+           (image :class "idle-overlay"
+                  :path "/home/blousy/Wallpapers/dune.png"
+                  :image-width 3840
+                  :image-height 2160
+                  :preserve-aspect-ratio true)
 )

@@ -1,4 +1,4 @@
-(defwidget bar [workspace_data]
+(defwidget bar [workspace_data calendar_window]
   (box :class "bar-container"
     (centerbox :orientation "h"
       ; Left section - system stats
@@ -34,7 +34,7 @@
         (label :class "section-divider" :text "│")
         (mullvad)
         (label :class "section-divider" :text "│")
-        (clock)
+        (clock :calendar_window calendar_window)
       )
     )
   )
