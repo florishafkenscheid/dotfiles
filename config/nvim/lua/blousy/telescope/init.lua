@@ -1,7 +1,20 @@
 return {
     "nvim-telescope/telescope.nvim",
-    event = "VimEnter", -- So <C-f> actually works before Telescope is called
-    cmd = "Telescope", -- Or load when needed
+    cmd = "Telescope",
+    keys = {
+        {
+            "<C-f>",
+            function()
+                require("telescope.builtin").find_files({ hidden = true, no_ignore = true })
+            end,
+        },
+        {
+            "<C-g>",
+            function()
+                require("telescope").extensions.live_grep_args.live_grep_args()
+            end,
+        },
+    },
 
     dependencies = {
         "nvim-lua/plenary.nvim",
@@ -11,7 +24,6 @@ return {
 
     config = function()
         local telescope = require("telescope")
-        local builtin = require("telescope.builtin")
 
         telescope.setup({
             defaults = {
@@ -34,11 +46,7 @@ return {
                 },
             },
         })
+        telescope.load_extension("fzf")
         telescope.load_extension("live_grep_args")
-
-        local opts = { noremap = true, silent = true }
-
-        vim.keymap.set('n', '<C-f>', function () builtin.find_files({ hidden = true, no_ignore = true }) end, opts)
-        vim.keymap.set('n', '<C-g>', require('telescope').extensions.live_grep_args.live_grep_args, { noremap = true })
     end,
 }

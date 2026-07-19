@@ -53,15 +53,5 @@ return {
         vim.lsp.enable('lua_ls')
         vim.lsp.enable('dcm')
 
-        vim.api.nvim_create_autocmd('BufWritePre', {
-            pattern = '*.rs, *.py',
-            callback = function(ev)
-                vim.lsp.buf.format({
-                    bufnr = ev.buf,
-                    async = false,
-                })
-            end,
-        })
-
     end
 }

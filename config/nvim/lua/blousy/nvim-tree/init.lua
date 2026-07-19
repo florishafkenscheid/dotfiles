@@ -82,7 +82,7 @@ return {
         -- Open on startup
         vim.api.nvim_create_autocmd("BufEnter", {
             callback = function()
-                if vim.fn.argc() == 0 or vim.fn.isdirectory(vim.fn.argv()[1]) == 1 then
+                if vim.fn.argc() > 0 and vim.fn.isdirectory(vim.fn.argv()[1]) == 1 then
                     api.tree.open()
                 end
             end,

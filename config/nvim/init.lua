@@ -14,7 +14,7 @@ vim.g.maplocalleader = " "
 keymap("n", "<Enter>", "o<ESC>", opts)
 
 -- Shift Enter = new line above
-keymap("n", "SHIFT<Enter>", "O<ESC>", opts)
+keymap("n", "<S-Enter>", "O<ESC>", opts)
 
 -- Exit terminal mode easier
 keymap("t", "<esc><esc>", "<c-\\><c-n>", opts)
@@ -25,7 +25,7 @@ keymap("t", "<esc><esc>", "<c-\\><c-n>", opts)
 
 -- Disable netrw in favor of nvim-tree
 vim.g.loaded_netrw = 1
-vim.g.loader_netrwPlugin = 1
+vim.g.loaded_netrwPlugin = 1
 
 -- Tabs -> 2 spaces
 vim.opt.tabstop = 2
