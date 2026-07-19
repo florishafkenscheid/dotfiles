@@ -7,6 +7,7 @@ return {
 	require("blousy.yuck"),
 
 	-- Aesthetics
+	require("blousy.alpha"),
 	require("blousy.lualine"),
 	require("blousy.web-devicons"),
 	require("blousy.virt-column"),
