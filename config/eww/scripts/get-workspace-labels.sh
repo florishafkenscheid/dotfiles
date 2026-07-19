@@ -24,6 +24,8 @@ declare -A ICONS=(
   ["default"]=":default:"
   ["code"]=":code:"
   ["gimp"]=":gimp:"
+  ["thunar"]=":finder:"
+  ["slack"]=":slack:"
 )
 
 icon_for() {
@@ -46,6 +48,7 @@ icon_for() {
     *minecraft* | *prismlauncher*) printf '%s\n' ":minecraft:"; return ;;
     *discord* | vesktop) printf '%s\n' "${ICONS[discord]}"; return ;;
     *zed*) printf '%s\n' "${ICONS[zed]}"; return ;;
+    *factorio*) printf '%s\n' "${ICONS[factorio]}"; return ;;
   esac
 
   case "$title" in

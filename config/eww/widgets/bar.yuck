@@ -32,6 +32,8 @@
         (label :class "section-divider" :text "│")
         (volume_control)
         (label :class "section-divider" :text "│")
+        (mouse_battery)
+        (label :class "section-divider" :text "│" :visible {mouse_battery_data.available})
         (mullvad)
         (label :class "section-divider" :text "│")
         (clock :calendar_window calendar_window)

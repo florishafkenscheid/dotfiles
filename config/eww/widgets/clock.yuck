@@ -10,7 +10,7 @@
       :space-evenly false
       :valign "center"
       (label
-        :text "${gettime_short}"
+        :text "${time_data.short}"
         :class "clock clock-label"
       )
       (revealer
@@ -18,7 +18,7 @@
         :transition "slideright"
         :duration "180ms"
         (label
-          :text "${gettime_seconds}"
+          :text "${time_data.seconds}"
           :class "clock clock-seconds"
         )
       )
@@ -30,9 +30,9 @@
   (box :class "clock-calendar-popup"
     (calendar
       :class "clock-calendar"
-      :day {calendar_day}
-      :month {calendar_month}
-      :year {calendar_year}
+      :day {time_data.day}
+      :month {time_data.month}
+      :year {time_data.year}
       :show-heading true
       :show-day-names true
       :show-week-numbers false

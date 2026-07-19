@@ -4,6 +4,7 @@
 (include "./widgets/cpu_gpu.yuck")
 (include "./widgets/memory.yuck")
 (include "./widgets/mullvad.yuck")
+(include "./widgets/mouse_battery.yuck")
 (include "./widgets/now_playing.yuck")
 (include "./widgets/system_badge.yuck")
 (include "./widgets/volume_control.yuck")
@@ -12,15 +13,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Clock vars & polls
 (defvar clock_is_hovered false)
-(defpoll gettime_short :interval "1s" "date +'%H:%M'")
-(defpoll gettime_seconds :interval "1s" "date +':%S'")
-(defpoll calendar_day :interval "1h" "date +'%-d'")
-(defpoll calendar_month :interval "1h" "date +'%-m'")
-(defpoll calendar_year :interval "1h" "date +'%Y'")
+(defpoll time_data :interval "1s" `date +'{"short":"%H:%M","seconds":":%S","day":%-d,"month":%-m,"year":%Y}'`)
 
 ; CPU && GPU vars & polls
 ; cpu_percent is a magic value, no need to get it ourselves
-(defpoll gpu_percent :interval "2s" "radeontop -d - -l 1 | grep -o 'gpu [0-9]*' | cut -d ' ' -f 2")
+(defpoll gpu_percent :interval "2s" "cat /sys/bus/pci/devices/0000:03:00.0/gpu_busy_percent")
 (defvar show_temps false) ; Make two instances of the temp popup, only show the one one the current monitor
 (defpoll temps_string :interval "2s" "sensors -j | jq -r '\" \\(.[\"k10temp-pci-00c3\"].Tctl.temp1_input | round)    \\(.[\"amdgpu-pci-0300\"].junction.temp2_input | round) \"'")
 
@@ -38,6 +35,10 @@
 ; Volume control (Tidal PipeWire stream when active, otherwise default sink)
 (defvar show_volume_slider false)
 (defpoll volume_data :interval "1s" `scripts/get-volume.sh`)
+
+; Lamzu Maya X battery
+(defvar mouse_battery_hovered false)
+(defpoll mouse_battery_data :interval "2m" `scripts/get-lamzu-battery.py`)
 
 ; Get workspaces and if they're active or not, per monitor
 (deflisten workspace_labels_primary :initial "[]" `scripts/listen-workspace-labels.sh DP-2`)
