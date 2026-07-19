@@ -8,7 +8,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME=""
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -123,23 +123,6 @@ alias ssh="mullvad-exclude kitty +kitten ssh"
 alias yay="mullvad-exclude yay"
 export TERM=xterm-256color
 
-switch-audio() {
-    current=$(pactl get-default-sink)
-    if [[ "$current" == "alsa_output.usb-Blue_Microphones_Yeti_Stereo_Microphone_REV8-00.analog-stereo" ]]; then
-        new_sink="alsa_output.usb-TTGK_Technology_TP35_Pro_330243E6250525-01.analog-stereo"
-        echo "Switching to IEMs"
-    else
-        new_sink="alsa_output.usb-Blue_Microphones_Yeti_Stereo_Microphone_REV8-00.analog-stereo"
-        echo "Switching to Headphones"
-    fi
-
-    pactl set-default-sink "$new_sink"
-
-    for input in $(pactl list short sink-inputs | awk '{print $1}'); do
-        pactl move-sink-input "$input" "$new_sink"
-    done
-}
-
 icat-all() {
     emulate -L zsh
     setopt pipefail null_glob
@@ -162,8 +145,6 @@ icat-all() {
     kitty +kitten icat --align left -- "${imgs[@]}"
 }
 
-export PATH=$PATH:/home/blousy/.spicetify
-
 # Load zoxide
 eval "$(zoxide init zsh)"
 
@@ -181,8 +162,3 @@ zstyle ':completion:*' menu no
 
 # Git
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/home/blousy/.lmstudio/bin"
-# End of LM Studio CLI section
-
