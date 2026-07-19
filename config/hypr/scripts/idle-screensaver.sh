@@ -3,6 +3,7 @@
 set -euo pipefail
 
 SECONDARY_MONITOR="HDMI-A-1"
+POWER_HELPER="/usr/local/sbin/hypr-idle-power"
 
 close_bars() {
   eww close bar_primary || true
@@ -14,6 +15,7 @@ open_bars() {
 }
 
 start_screensaver() {
+  sudo -n "${POWER_HELPER}" start || true
   hyprctl dispatch dpms off "${SECONDARY_MONITOR}" || true
   close_bars
   eww open idle_overlay
@@ -22,7 +24,8 @@ start_screensaver() {
 stop_screensaver() {
   eww close idle_overlay || true
   hyprctl dispatch dpms on "${SECONDARY_MONITOR}" || true
-  sleep 2
+  sudo -n "${POWER_HELPER}" stop || true
+  sleep 3
   open_bars
 }
 

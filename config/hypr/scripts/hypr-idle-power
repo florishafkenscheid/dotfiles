@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+STATE_DIR="/run/hypr-idle-power"
+CPU_STATE="${STATE_DIR}/cpu"
+GPU_STATE="${STATE_DIR}/gpu"
+
+require_root() {
+  if (( EUID != 0 )); then
+    echo "hypr-idle-power must run as root" >&2
+    exit 1
+  fi
+}
+
+save_value() {
+  local state_file=$1
+  local path=$2
+  local value
+
+  [[ -r "${path}" ]] || return 0
+  if [[ "${path}" == */pp_power_profile_mode ]]; then
+    value=$(awk '$2 ~ /\*:/ { print $1; exit }' "${path}")
+  else
+    value=$(cat "${path}")
+  fi
+  [[ -n "${value}" ]] && printf '%s\t%s\n' "${path}" "${value}" >> "${state_file}"
+}
+
+restore_values() {
+  local state_file=$1
+  local path value
+
+  [[ -f "${state_file}" ]] || return 0
+  while IFS=$'\t' read -r path value; do
+    [[ -w "${path}" ]] || continue
+    printf '%s\n' "${value}" > "${path}" || true
+  done < "${state_file}"
+  rm -f "${state_file}"
+}
+
+cpu_start() {
+  mkdir -p "${STATE_DIR}"
+  [[ -f "${CPU_STATE}" ]] || {
+    : > "${CPU_STATE}"
+    for policy in /sys/devices/system/cpu/cpufreq/policy*; do
+      [[ -d "${policy}" ]] || continue
+      save_value "${CPU_STATE}" "${policy}/scaling_governor"
+      save_value "${CPU_STATE}" "${policy}/energy_performance_preference"
+    done
+  }
+
+  for policy in /sys/devices/system/cpu/cpufreq/policy*; do
+    [[ -d "${policy}" ]] || continue
+    grep -qw powersave "${policy}/scaling_available_governors" 2>/dev/null &&
+      printf '%s\n' powersave > "${policy}/scaling_governor"
+    grep -qw power "${policy}/energy_performance_available_preferences" 2>/dev/null &&
+      printf '%s\n' power > "${policy}/energy_performance_preference"
+  done
+}
+
+gpu_start() {
+  local device profile
+
+  mkdir -p "${STATE_DIR}"
+  [[ -f "${GPU_STATE}" ]] || {
+    : > "${GPU_STATE}"
+    for device in /sys/class/drm/card*/device; do
+      [[ -e "${device}/power_dpm_force_performance_level" ]] || continue
+      save_value "${GPU_STATE}" "${device}/power_dpm_force_performance_level"
+      save_value "${GPU_STATE}" "${device}/pp_power_profile_mode"
+    done
+  }
+
+  for device in /sys/class/drm/card*/device; do
+    [[ -w "${device}/power_dpm_force_performance_level" ]] || continue
+    printf '%s\n' auto > "${device}/power_dpm_force_performance_level"
+
+    [[ -r "${device}/pp_power_profile_mode" && -w "${device}/pp_power_profile_mode" ]] || continue
+    profile=$(awk '$2 == "POWER_SAVING" { print $1; exit }' "${device}/pp_power_profile_mode")
+    [[ -n "${profile}" ]] && printf '%s\n' "${profile}" > "${device}/pp_power_profile_mode"
+  done
+}
+
+start() {
+  cpu_start
+  gpu_start
+}
+
+stop() {
+  restore_values "${GPU_STATE}"
+  restore_values "${CPU_STATE}"
+  rmdir "${STATE_DIR}" 2>/dev/null || true
+}
+
+require_root
+
+case "${1:-}" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}" >&2
+    exit 1
+    ;;
+esac
