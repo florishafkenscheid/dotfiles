@@ -1,0 +1,6 @@
+[Unit]
+Description=Exit Steam after five minutes without a running game
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/hypr/scripts/steam-idle-exit.sh

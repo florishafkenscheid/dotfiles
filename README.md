@@ -62,6 +62,10 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - Runtime dependencies: `hypridle`, `mpvpaper`, and `mpv`.
 - Set `SCREENSAVER_VIDEO` in the script, or override it through the environment before starting Hyprland.
 
+### Steam Idle Exit
+- `steam-idle-exit.timer` closes Steam after no game has been active for 5 minutes.
+- Enable it with `systemctl --user enable --now steam-idle-exit.timer` after stowing `config`.
+
 ## Future
 For when I eventually get sick of this, or I simply want to try out different DE's, WM's, widget systems etc, I am compiling a list of interesting, yet not necessarily related projects to use.
 
