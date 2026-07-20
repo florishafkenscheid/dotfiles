@@ -37,7 +37,7 @@ return {
             capabilities = capabilities,
             on_attach = on_attach,
             settings = {
-                ['rust_analyzer'] = {
+                ['rust-analyzer'] = {
                     check = {
                         command = "clippy"
                     },
