@@ -1,0 +1,173 @@
+// Niri is the development session. Hyprland remains independently configured
+// in ~/.config/hypr and is still the default greetd session.
+
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+    }
+
+    mouse {
+        accel-speed -0.4
+    }
+
+    focus-follows-mouse max-scroll-amount="0%"
+}
+
+output "DP-2" {
+    // Omitting the refresh rate selects the highest advertised 4K mode.
+    mode "3840x2160"
+    position x=3840 y=0
+    scale 1
+    focus-at-startup
+    backdrop-color "#080604"
+}
+
+output "HDMI-A-1" {
+    mode "3840x2160"
+    position x=0 y=0
+    scale 1
+    backdrop-color "#000000"
+}
+
+layout {
+    gaps 24
+    center-focused-column "on-overflow"
+    always-center-single-column
+
+    struts {
+        left 24
+        right 24
+        top 12
+        bottom 12
+    }
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 1.0
+    }
+
+    default-column-width { proportion 0.5; }
+
+    focus-ring {
+        off
+    }
+
+    border {
+        width 2
+        active-color "#d77f00"
+        inactive-color "#33281b"
+    }
+
+    shadow {
+        on
+        softness 24
+        spread 3
+        offset x=0 y=4
+        color "#1a1a1aee"
+    }
+}
+
+prefer-no-csd
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+// Quickshell owns the panel; the other helpers are deliberately session-local.
+spawn-at-startup "qs" "-c" "blousy"
+spawn-at-startup "mako"
+spawn-at-startup "clipse" "-listen"
+spawn-at-startup "systemctl" "--user" "start" "hyprpolkitagent"
+spawn-at-startup "swaybg" "-o" "DP-2" "-i" "/home/blousy/Wallpapers/dune.png" "-m" "fill" "-o" "HDMI-A-1" "-c" "#000000"
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+animations {
+    slowdown 0.8
+}
+
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+
+    Mod+Return hotkey-overlay-title="Open Kitty" { spawn "kitty"; }
+    Mod+Shift+Return hotkey-overlay-title="Open Zen Browser" { spawn "zen-browser"; }
+    Ctrl+Space hotkey-overlay-title="Application Launcher" { spawn "rofi" "-show" "drun"; }
+    Mod+V hotkey-overlay-title="Clipboard History" { spawn "kitty" "--class" "clipse" "-e" "clipse"; }
+    Mod+Shift+D hotkey-overlay-title="Switch Desktop" { spawn "/home/blousy/.config/desktop/switch"; }
+
+    Mod+W { close-window; }
+    Mod+Shift+F { toggle-window-floating; }
+    Mod+F { maximize-column; }
+    Mod+Shift+Space { fullscreen-window; }
+    Mod+Tab { toggle-overview; }
+
+    Mod+Left { focus-column-or-monitor-left; }
+    Mod+Right { focus-column-or-monitor-right; }
+    Mod+Up { focus-window-up; }
+    Mod+Down { focus-window-down; }
+
+    Mod+Shift+Left { move-column-left-or-to-monitor-left; }
+    Mod+Shift+Right { move-column-right-or-to-monitor-right; }
+    Mod+Shift+Up { move-window-up; }
+    Mod+Shift+Down { move-window-down; }
+
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+R { switch-preset-column-width; }
+    Mod+Comma { consume-window-into-column; }
+    Mod+Period { expel-window-from-column; }
+
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+0 { focus-workspace 10; }
+
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+    Mod+Shift+0 { move-column-to-workspace 10; }
+
+    Ctrl+Shift+Z { screenshot; }
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    XF86AudioPlay { spawn "/home/blousy/.config/hypr/scripts/media-control.sh" "play-pause"; }
+    XF86AudioPrev { spawn "/home/blousy/.config/hypr/scripts/media-control.sh" "previous"; }
+    XF86AudioNext { spawn "/home/blousy/.config/hypr/scripts/media-control.sh" "next"; }
+
+    Mod+Shift+E hotkey-overlay-title="Log Out to Greetd" { quit; }
+    Ctrl+Alt+Delete { quit; }
+}
+
+window-rule {
+    match app-id="^clipse$"
+    open-floating true
+    default-floating-position x=0 y=0 relative-to="bottom-right"
+}
+
+window-rule {
+    match app-id=r#"firefox$"# title="^Picture-in-Picture$"
+    open-floating true
+}

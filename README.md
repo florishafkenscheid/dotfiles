@@ -13,6 +13,57 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 > [!IMPORTANT]
 > These files are symlinked to the right place using [GNU Stow](https://brandon.invergo.net/news/2012-05-26-using-gnu-stow-to-manage-your-dotfiles.html).
 
+## Desktop sessions
+
+Hyprland/Eww remains the gaming and entertainment session. Niri/Quickshell is
+an independent development session: both sets of configuration coexist under
+`~/.config` and only the selected compositor starts its own shell and helpers.
+
+Greetd starts `~/.config/desktop/session`, which keeps the authenticated login
+alive while a compositor is running. Use `Super+Shift+D` or click the Arch
+logo in either bar to switch. Open clients are closed during this
+first-iteration handoff. A normal logout returns to greetd.
+
+`F3` in tuigreet selects the initial session. Hyprland is still the default.
+
+Both sessions explicitly inherit the same `CODEX_HOME` (normally
+`~/.codex`). Codex user configuration, profiles, skills, authentication, and
+resumable session state therefore stay in sync automatically. That live,
+sensitive state is intentionally not copied into this repository; project
+overrides such as `.codex/config.toml` remain shared through the project
+filesystem as usual.
+
+Suspending individual graphical clients is not enough to preserve them during
+the current handoff: their Wayland or Xwayland connection belongs to the
+compositor that exits. For low-risk experimentation, run Niri nested inside
+Hyprland so both it and its clients remain alive in a normal Hyprland window.
+A future native, client-preserving mode would instead keep both compositors
+alive on separate VTs and switch between them; that also needs deliberate
+isolation of each session's portals, D-Bus activation environment, and other
+per-session services.
+
+The Niri session currently expects these additional Arch packages:
+
+```sh
+sudo pacman -S niri quickshell swaybg xwayland-satellite
+```
+
+Add `xdg-desktop-portal-gnome` when Niri screencasting is needed; the existing
+GTK portal continues to cover the basic fallback portal features.
+
+After stowing `config`, install the updated greetd file with the existing
+root-targeted `etc` stow workflow. Install the tracked session shim into
+`/usr/local/bin`, which is part of greetd's authenticated-session `PATH`, then
+log out once so greetd starts the new session supervisor:
+
+```sh
+sudo ln -s /home/blousy/dotfiles/local/bin/desktop-session \
+    /usr/local/bin/desktop-session
+```
+
+The future multi-theme layout is documented in
+`~/.config/desktop/themes/README.md`; Dune remains the only implemented theme.
+
 ## Progress
 > [!NOTE]
 > ↩️ means somehow linked to the next point, ⏳ means currently WIP.
@@ -34,6 +85,8 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 - [ ] Kitty - `~/.config/kitty/`
 - [ ] ~~Waybar - `~/.config/waybar/`~~ ↩️ *(Replaced by EWW)*
 - [x] EWW - `~/.config/eww/`
+- [ ] Niri - `~/.config/niri/` ⏳
+- [ ] Quickshell - `~/.config/quickshell/blousy/` ⏳
 - [x] hypridle - `~/.config/hypr/hypridle.conf`
 - [x] tuigreet - `/etc/greetd/config.toml`
 - [x] fastfetch - `~/.config/fastfetch/config.jsonc`

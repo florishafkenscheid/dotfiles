@@ -1,0 +1,131 @@
+#!/bin/sh
+
+# Request a compositor swap from the session supervisor. The compositor exits,
+# but greetd's authenticated user session remains alive and starts the target.
+
+set -u
+
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+session_dir="${runtime_dir}/blousy-desktop-session"
+current_file="${session_dir}/current"
+next_file="${session_dir}/next"
+supervisor_file="${session_dir}/supervisor"
+
+notify() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send --app-name "Desktop switcher" "$1" "$2"
+    else
+        printf '%s: %s\n' "$1" "$2" >&2
+    fi
+}
+
+target_available() {
+    case "$1" in
+        hyprland)
+            command -v start-hyprland-quietly >/dev/null 2>&1
+            ;;
+        niri)
+            command -v niri >/dev/null 2>&1 &&
+                command -v qs >/dev/null 2>&1
+            ;;
+    esac
+}
+
+choose_target() {
+    if ! command -v rofi >/dev/null 2>&1; then
+        notify "Cannot open desktop switcher" "rofi is not installed."
+        return 1
+    fi
+
+    current="$1"
+    if [ "$current" = "hyprland" ]; then
+        choices="󱘎  Niri · development
+󰖯  Stay in Hyprland · gaming
+Cancel"
+    else
+        choices="󰖯  Hyprland · gaming
+󱘎  Stay in Niri · development
+Cancel"
+    fi
+
+    selection="$(printf '%s\n' "$choices" |
+        rofi -dmenu -i -p "Switch desktop" -no-custom)"
+
+    case "$selection" in
+        *Niri*) printf '%s\n' "niri" ;;
+        *Hyprland*) printf '%s\n' "hyprland" ;;
+        *) return 1 ;;
+    esac
+}
+
+if [ ! -r "$current_file" ] || [ ! -r "$supervisor_file" ]; then
+    notify "Desktop switcher is not active" \
+        "Log out once, then start a session through the new greetd entry."
+    exit 1
+fi
+
+supervisor_pid="$(sed -n '1p' "$supervisor_file")"
+if [ -z "$supervisor_pid" ] || ! kill -0 "$supervisor_pid" 2>/dev/null; then
+    notify "Desktop switcher is not active" "The session supervisor is not running."
+    exit 1
+fi
+
+current="$(sed -n '1p' "$current_file")"
+case "$current" in
+    hyprland | niri) ;;
+    *)
+        notify "Cannot switch desktop" "The current desktop could not be identified."
+        exit 1
+        ;;
+esac
+
+case "${1:-menu}" in
+    menu) target="$(choose_target "$current")" || exit 0 ;;
+    hyprland | niri) target="$1" ;;
+    *)
+        notify "Cannot switch desktop" "Unknown target: $1"
+        exit 2
+        ;;
+esac
+
+if [ "$target" = "$current" ]; then
+    exit 0
+fi
+
+if ! target_available "$target"; then
+    if [ "$target" = "niri" ]; then
+        notify "Niri / Quickshell is not ready" \
+            "Install the niri and quickshell packages first."
+    else
+        notify "Hyprland / Eww is not ready" \
+            "start-hyprland-quietly is missing."
+    fi
+    exit 1
+fi
+
+next_tmp="${next_file}.$$"
+printf '%s\n' "$target" >"$next_tmp"
+if ! mv "$next_tmp" "$next_file"; then
+    rm -f "$next_tmp"
+    notify "Could not request desktop switch" "The runtime state could not be updated."
+    exit 1
+fi
+
+notify "Switching desktop" "Open clients will close; the login session stays active."
+
+case "$current" in
+    hyprland)
+        if ! hyprctl dispatch exit; then
+            rm -f "$next_file"
+            notify "Could not leave Hyprland" "The switch request was cancelled."
+            exit 1
+        fi
+        ;;
+    niri)
+        if ! niri msg action quit --skip-confirmation; then
+            rm -f "$next_file"
+            notify "Could not leave Niri" "The switch request was cancelled."
+            exit 1
+        fi
+        ;;
+esac

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Niri · Development
+Comment=Niri and Quickshell, with in-session desktop switching
+Exec=desktop-session niri
+TryExec=desktop-session
+Type=Application
