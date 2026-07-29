@@ -1,0 +1,128 @@
+#!/bin/sh
+
+# Activate the other persistent greetd/logind session. Neither compositor nor
+# any of its clients is stopped.
+
+set -u
+
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+state_dir="${runtime_dir}/blousy-desktop-vt"
+current="${BLOUSY_DESKTOP:-}"
+
+notify() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send --app-name "Desktop switcher" "$1" "$2"
+    else
+        printf '%s: %s\n' "$1" "$2" >&2
+    fi
+}
+
+desktop_label() {
+    case "$1" in
+        hyprland) printf '%s\n' "Hyprland / Eww" ;;
+        niri) printf '%s\n' "Niri / Quickshell" ;;
+    esac
+}
+
+choose_target() {
+    if ! command -v rofi >/dev/null 2>&1; then
+        notify "Cannot open desktop switcher" "rofi is not installed."
+        return 1
+    fi
+
+    if [ "$current" = "hyprland" ]; then
+        choices="󱘎  Niri · development
+󰖯  Stay in Hyprland · gaming
+Cancel"
+    else
+        choices="󰖯  Hyprland · gaming
+󱘎  Stay in Niri · development
+Cancel"
+    fi
+
+    selection="$(printf '%s\n' "$choices" |
+        rofi -dmenu -i -p "Switch desktop" -no-custom)"
+
+    case "$selection" in
+        *Niri*) printf '%s\n' "niri" ;;
+        *Hyprland*) printf '%s\n' "hyprland" ;;
+        *) return 1 ;;
+    esac
+}
+
+case "$current" in
+    hyprland | niri) ;;
+    *)
+        notify "Cannot switch desktop" "This is not a registered persistent desktop session."
+        exit 1
+        ;;
+esac
+
+case "${1:-menu}" in
+    menu) target="$(choose_target)" || exit 0 ;;
+    hyprland | niri) target="$1" ;;
+    *)
+        notify "Cannot switch desktop" "Unknown target: $1"
+        exit 2
+        ;;
+esac
+
+if [ "$target" = "$current" ]; then
+    exit 0
+fi
+
+state_file="${state_dir}/${target}"
+attempt=0
+while [ ! -s "$state_file" ] && [ "$attempt" -lt 20 ]; do
+    sleep 0.1
+    attempt=$((attempt + 1))
+done
+
+if [ ! -r "$state_file" ]; then
+    notify "$(desktop_label "$target") is unavailable" \
+        "Its persistent login is not running. Use the current desktop or reboot."
+    exit 1
+fi
+
+session_id="$(sed -n '1p' "$state_file")"
+vt_number="$(sed -n '2p' "$state_file")"
+session_pid="$(sed -n '3p' "$state_file")"
+
+case "$session_id" in
+    "" | *[!A-Za-z0-9_-]*) session_id="" ;;
+esac
+case "$vt_number" in
+    "" | *[!0-9]*) vt_number="" ;;
+esac
+case "$session_pid" in
+    "" | *[!0-9]*) session_pid="" ;;
+esac
+
+if [ -z "$session_id" ] || [ -z "$vt_number" ] || [ -z "$session_pid" ] ||
+    ! kill -0 "$session_pid" 2>/dev/null; then
+    notify "$(desktop_label "$target") is unavailable" \
+        "Its session registration is stale. A reboot will recreate it."
+    exit 1
+fi
+
+expected_uid="$(id -u)"
+session_uid="$(loginctl show-session "$session_id" -p User --value 2>/dev/null || :)"
+session_seat="$(loginctl show-session "$session_id" -p Seat --value 2>/dev/null || :)"
+session_state="$(loginctl show-session "$session_id" -p State --value 2>/dev/null || :)"
+registered_vt="$(loginctl show-session "$session_id" -p VTNr --value 2>/dev/null || :)"
+
+if [ "$session_uid" != "$expected_uid" ] ||
+    [ "$session_seat" != "seat0" ] ||
+    [ "$registered_vt" != "$vt_number" ] ||
+    [ "$session_state" = "closing" ] ||
+    [ -z "$session_state" ]; then
+    notify "$(desktop_label "$target") is unavailable" \
+        "logind could not verify its persistent session."
+    exit 1
+fi
+
+if ! loginctl activate "$session_id"; then
+    notify "Could not switch desktop" \
+        "logind could not activate $(desktop_label "$target") on VT ${vt_number}."
+    exit 1
+fi

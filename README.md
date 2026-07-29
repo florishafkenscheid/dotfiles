@@ -15,16 +15,26 @@ The theme is based on the Dune movies, focussing on the vibrant oranges used in 
 
 ## Desktop sessions
 
-Hyprland/Eww remains the gaming and entertainment session. Niri/Quickshell is
-an independent development session: both sets of configuration coexist under
-`~/.config` and only the selected compositor starts its own shell and helpers.
+Hyprland/Eww remains the gaming and entertainment desktop. Niri/Quickshell is
+the development desktop. Both compositors are logged in automatically at boot:
+Niri starts on VT2 first, then Hyprland starts on VT1 and remains visible.
 
-Greetd starts `~/.config/desktop/session`, which keeps the authenticated login
-alive while a compositor is running. Use `Super+Shift+D` or click the Arch
-logo in either bar to switch. Open clients are closed during this
-first-iteration handoff. A normal logout returns to greetd.
+Use `Super+Shift+D` or click the plain Arch logo in either bar to switch.
+The switcher asks logind to activate the other session, so both compositors and
+their clients stay alive. No `Ctrl+Alt+F1/F2` is needed. The inactive desktop
+continues running rather than being frozen; media, builds, downloads, and GPU
+clients may therefore keep consuming resources.
 
-`F3` in tuigreet selects the initial session. Hyprland is still the default.
+Each compositor runs on a private D-Bus session bus and owns its own
+notifications and graphical helpers. Session-specific Wayland state is not
+imported into the shared systemd user manager. This reduces cross-session
+activation mistakes while retaining the same Unix account and home directory.
+
+Autologin means anyone with physical access after boot can use both unlocked
+desktops. Greetd runs each initial session once per boot; deliberately logging
+out of one desktop returns that VT to tuigreet instead of immediately logging
+it back in. Portal behavior, application singletons, and hardware acceleration
+across an inactive VT should be checked after the first reboot.
 
 Both sessions explicitly inherit the same `CODEX_HOME` (normally
 `~/.codex`). Codex user configuration, profiles, skills, authentication, and
@@ -33,14 +43,11 @@ sensitive state is intentionally not copied into this repository; project
 overrides such as `.codex/config.toml` remain shared through the project
 filesystem as usual.
 
-Suspending individual graphical clients is not enough to preserve them during
-the current handoff: their Wayland or Xwayland connection belongs to the
-compositor that exits. For low-risk experimentation, run Niri nested inside
-Hyprland so both it and its clients remain alive in a normal Hyprland window.
-A future native, client-preserving mode would instead keep both compositors
-alive on separate VTs and switch between them; that also needs deliberate
-isolation of each session's portals, D-Bus activation environment, and other
-per-session services.
+The original compositor handoff remains available as a rollback. Start a
+`desktop-session` greetd entry manually (or run it from a TTY) and the same
+switch command detects that it is not in persistent mode, then closes the
+current compositor and launches the other one. Its implementation lives in
+`~/.config/desktop/switch-handoff`.
 
 The Niri session currently expects these additional Arch packages:
 
@@ -51,15 +58,23 @@ sudo pacman -S niri quickshell swaybg xwayland-satellite
 Add `xdg-desktop-portal-gnome` when Niri screencasting is needed; the existing
 GTK portal continues to cover the basic fallback portal features.
 
-After stowing `config`, install the updated greetd file with the existing
-root-targeted `etc` stow workflow. Install the tracked session shim into
-`/usr/local/bin`, which is part of greetd's authenticated-session `PATH`, then
-log out once so greetd starts the new session supervisor:
+After stowing `config` and `local`, install the tracked greetd configuration
+and systemd units with the existing root-targeted `etc` stow workflow. Reload
+systemd and enable the secondary greetd instance without starting it in the
+current graphical login:
 
 ```sh
-sudo ln -s /home/blousy/dotfiles/local/bin/desktop-session \
-    /usr/local/bin/desktop-session
+stow --target "$HOME/.config" config
+stow --target "$HOME/.local" local
+systemctl --user disable hyprpaper.service hyprpolkitagent.service
+sudo stow --target /etc etc
+sudo systemctl daemon-reload
+sudo systemctl enable greetd-niri.service
 ```
+
+Reboot to start both sessions. `greetd-niri.service` waits briefly for the
+VT2 registration before the primary greetd instance starts on VT1, so Hyprland
+is the desktop left on screen.
 
 The future multi-theme layout is documented in
 `~/.config/desktop/themes/README.md`; Dune remains the only implemented theme.

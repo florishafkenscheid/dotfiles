@@ -1,0 +1,115 @@
+#!/bin/sh
+
+# Start one long-lived compositor inside its own greetd/logind session. Hyprland
+# and Niri use the same Unix account and filesystem, but each gets a private
+# D-Bus session bus and a registry entry used by desktop/switch-vt.
+
+set -u
+
+umask 077
+
+desktop="${1:-}"
+case "$desktop" in
+    hyprland | niri) ;;
+    *)
+        printf 'Usage: %s hyprland|niri\n' "$0" >&2
+        exit 2
+        ;;
+esac
+
+case "$desktop" in
+    hyprland)
+        command -v start-hyprland-quietly >/dev/null 2>&1 || {
+            printf 'start-hyprland-quietly is not installed.\n' >&2
+            exit 127
+        }
+        ;;
+    niri)
+        command -v niri >/dev/null 2>&1 || {
+            printf 'niri is not installed.\n' >&2
+            exit 127
+        }
+        command -v qs >/dev/null 2>&1 || {
+            printf 'quickshell is not installed.\n' >&2
+            exit 127
+        }
+        ;;
+esac
+
+if ! command -v dbus-run-session >/dev/null 2>&1; then
+    printf 'dbus-run-session is required for isolated desktop sessions.\n' >&2
+    exit 127
+fi
+
+session_id="${XDG_SESSION_ID:-}"
+vt_number="${XDG_VTNR:-}"
+case "$session_id" in
+    "" | *[!A-Za-z0-9_-]*)
+        printf 'greetd/logind did not provide a usable XDG_SESSION_ID.\n' >&2
+        exit 1
+        ;;
+esac
+case "$vt_number" in
+    "" | *[!0-9]*)
+        printf 'greetd/logind did not provide a usable XDG_VTNR.\n' >&2
+        exit 1
+        ;;
+esac
+
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+state_dir="${runtime_dir}/blousy-desktop-vt"
+state_file="${state_dir}/${desktop}"
+state_tmp="${state_file}.$$"
+
+if ! mkdir -p "$state_dir"; then
+    printf 'Could not create desktop state directory: %s\n' "$state_dir" >&2
+    exit 1
+fi
+chmod 700 "$state_dir"
+
+cleanup() {
+    rm -f "$state_tmp"
+    if [ -r "$state_file" ] &&
+        [ "$(sed -n '3p' "$state_file")" = "$$" ]; then
+        rm -f "$state_file"
+    fi
+}
+
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+printf '%s\n%s\n%s\n' "$session_id" "$vt_number" "$$" >"$state_tmp"
+mv "$state_tmp" "$state_file"
+
+shared_codex_state_dir="${CODEX_HOME:-/home/blousy/.codex}"
+if [ -d "$shared_codex_state_dir" ]; then
+    CODEX_HOME="$shared_codex_state_dir"
+    export CODEX_HOME
+else
+    printf 'Codex state directory does not exist: %s\n' "$shared_codex_state_dir" >&2
+fi
+
+BLOUSY_DESKTOP_MODE="vt"
+BLOUSY_DESKTOP="$desktop"
+XDG_SESSION_TYPE="wayland"
+export BLOUSY_DESKTOP_MODE BLOUSY_DESKTOP XDG_SESSION_TYPE
+
+case "$desktop" in
+    hyprland)
+        XDG_CURRENT_DESKTOP="Hyprland"
+        XDG_SESSION_DESKTOP="Hyprland"
+        export XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP
+        dbus-run-session -- start-hyprland-quietly
+        ;;
+    niri)
+        XDG_CURRENT_DESKTOP="niri"
+        XDG_SESSION_DESKTOP="niri"
+        export XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP
+        # Both niri-session and niri --session import display state into the
+        # same-UID systemd user manager. Plain niri keeps this VT independent;
+        # its shell and helpers are started explicitly by config.kdl.
+        dbus-run-session -- niri
+        ;;
+esac

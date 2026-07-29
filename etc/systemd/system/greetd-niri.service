@@ -1,0 +1,22 @@
+[Unit]
+Description=Greeter daemon for the persistent Niri session
+After=systemd-user-sessions.service plymouth-quit-wait.service
+After=getty@tty2.service
+Before=greetd.service
+Conflicts=getty@tty2.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/greetd -c /etc/greetd/niri.toml -s /run/greetd-niri.sock
+ExecStartPost=/usr/bin/sleep 3
+IgnoreSIGPIPE=no
+SendSIGHUP=yes
+TimeoutStopSec=30s
+KeyringMode=shared
+Restart=always
+RestartSec=1
+StartLimitBurst=5
+StartLimitInterval=30
+
+[Install]
+WantedBy=multi-user.target

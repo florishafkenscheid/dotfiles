@@ -78,7 +78,7 @@ screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 spawn-at-startup "qs" "-c" "blousy"
 spawn-at-startup "mako"
 spawn-at-startup "clipse" "-listen"
-spawn-at-startup "systemctl" "--user" "start" "hyprpolkitagent"
+spawn-at-startup "/usr/lib/hyprpolkitagent/hyprpolkitagent"
 spawn-at-startup "swaybg" "-o" "DP-2" "-i" "/home/blousy/Wallpapers/dune.png" "-m" "fill" "-o" "HDMI-A-1" "-c" "#000000"
 
 hotkey-overlay {

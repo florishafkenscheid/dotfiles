@@ -1,0 +1,14 @@
+[terminal]
+vt = 2
+switch = true
+
+[general]
+runfile = "/run/greetd-niri.run"
+
+[default_session]
+command = "/usr/bin/env PATH=/home/blousy/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin tuigreet --cmd 'desktop-vt-session niri' --time"
+user = "blousy"
+
+[initial_session]
+command = "/usr/bin/env PATH=/home/blousy/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin desktop-vt-session niri"
+user = "blousy"
