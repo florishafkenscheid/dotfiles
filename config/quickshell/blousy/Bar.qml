@@ -31,6 +31,10 @@ Scope {
     property var hyprClients: []
     property bool hyprClientsReady: false
     property int hyprEmptyClientPolls: 0
+    property var prismIconData: ({
+        "processes": {},
+        "versions": {}
+    })
     property var mediaData: ({
         "title": "Nothing Playing",
         "artist": ""
@@ -109,7 +113,24 @@ Scope {
         return apps;
     }
 
-    function windowIcon(appId) {
+    function windowIcon(appId, pid) {
+        const minecraftMatch = String(appId || "").match(
+            /^minecraft\*?\s*(.*)$/i
+        );
+        if (minecraftMatch) {
+            const processes = root.prismIconData.processes || {};
+            const versions = root.prismIconData.versions || {};
+            const processIcon = processes[String(pid || "")];
+            if (processIcon)
+                return processIcon;
+
+            const version = minecraftMatch[1].trim().toLowerCase();
+            if (version && versions[version])
+                return versions[version];
+
+            return Quickshell.iconPath("org.prismlauncher.PrismLauncher", true);
+        }
+
         const entry = DesktopEntries.heuristicLookup(appId || "");
         return entry && entry.icon ? Quickshell.iconPath(entry.icon, true) : "";
     }
@@ -354,6 +375,17 @@ Scope {
     }
 
     CommandPoll {
+        interval: 5000
+        command: [root.helperDir + "/get-prism-instance-icons.py"]
+
+        onUpdated: text => {
+            const value = root.parseJson(text, null);
+            if (value && typeof value === "object")
+                root.prismIconData = value;
+        }
+    }
+
+    CommandPoll {
         id: vpnPoll
         interval: 5000
         command: ["sh", "-c", "mullvad status -j 2>/dev/null | jq -r '.state // \"disconnected\"'"]
@@ -567,7 +599,10 @@ Scope {
                                     anchors.centerIn: parent
                                     width: 30
                                     height: 30
-                                    source: root.windowIcon(modelData.window.app_id)
+                                    source: root.windowIcon(
+                                        modelData.window.app_id,
+                                        modelData.window.pid
+                                    )
                                     sourceSize.width: 30
                                     sourceSize.height: 30
                                     fillMode: Image.PreserveAspectFit
@@ -676,7 +711,8 @@ Scope {
                                             width: 26
                                             height: 26
                                             source: root.windowIcon(
-                                                root.hyprAppId(modelData)
+                                                root.hyprAppId(modelData),
+                                                modelData.pid
                                             )
                                             sourceSize.width: 26
                                             sourceSize.height: 26
