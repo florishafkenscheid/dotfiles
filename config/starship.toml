@@ -5,7 +5,7 @@
 add_newline = true
 
 # Use custom palette
-palette = 'dune'
+palette = 'arrakis'
 
 # Command line
 [character]
@@ -85,12 +85,19 @@ typechanged = '' # idk what this is honestly
 
 format = '[\[[$all_status$ahead_behind](bold accent)\]](contrast)'
 
-[palettes.dune]
+[palettes.arrakis]
 main = '#ca6f1a' 
 accent = '#935012'
 contrast = '#454545'
 error = '#ee2e2e'
 success = '#00cd1a'
+
+[palettes.arcane]
+main = '#78834b'
+accent = '#c9a554'
+contrast = '#685742'
+error = '#b36d43'
+success = '#5f875f'
 
 [aws]
 disabled = true

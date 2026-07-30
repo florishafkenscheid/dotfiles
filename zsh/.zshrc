@@ -82,6 +82,22 @@ plugins=(
 # Load oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 
+# Desktop theme state is generated atomically by ~/.config/desktop/theme.
+desktop_state_home="${XDG_STATE_HOME:-$HOME/.local/state}/blousy"
+if [[ -r "$desktop_state_home/starship.toml" ]]; then
+    export STARSHIP_CONFIG="$desktop_state_home/starship.toml"
+fi
+
+fastfetch() {
+    local theme_config="$desktop_state_home/fastfetch.jsonc"
+
+    if [[ -r "$theme_config" ]]; then
+        command fastfetch --config "$theme_config" "$@"
+    else
+        command fastfetch "$@"
+    fi
+}
+
 # Load starship
 eval "$(starship init zsh)"
 

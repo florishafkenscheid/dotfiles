@@ -161,3 +161,6 @@ configuration {
 }
 
 @theme "dune"
+
+/* Optional on a fresh checkout; ~/.config/desktop/theme creates it. */
+?import "~/.local/state/blousy/rofi-theme.rasi"

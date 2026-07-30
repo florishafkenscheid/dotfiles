@@ -5,34 +5,57 @@ return {
     event = "VeryLazy",
 
     config = function()
-        -- Color setup, matching my own dune theme
-        local dune_lualine_theme = {
+        local palettes = {
+            dune = {
+                bg = "#000000",
+                fg = "#DDDDDD",
+                muted = "#BBBBBB",
+                accent = "#D77F00",
+                insert = "#AA5F09",
+                visual = "#FFD700",
+                replace = "#FF0000",
+                command = "#6D6D78",
+            },
+            miasma = {
+                bg = "#222222",
+                fg = "#DFD4AF",
+                muted = "#C09A6B",
+                accent = "#78834B",
+                insert = "#5F875F",
+                visual = "#C9A554",
+                replace = "#B36D43",
+                command = "#685742",
+            },
+        }
+        local palette = palettes[vim.g.colors_name] or palettes.dune
+
+        local desktop_lualine_theme = {
             normal = {
-                a = { fg = '#000000', bg = '#D77F00' },
-                b = { fg = '#BBBBBB', bg = '#000000' },
-                c = { fg = '#DDDDDD', bg = 'none' },
-                x = { fg = '#BBBBBB', bg = 'none' },
-                y = { fg = '#DDDDDD', bg = '#000000' },
-                z = { fg = '#000000', bg = '#D77F00' },
+                a = { fg = palette.bg, bg = palette.accent },
+                b = { fg = palette.muted, bg = palette.bg },
+                c = { fg = palette.fg, bg = "none" },
+                x = { fg = palette.muted, bg = "none" },
+                y = { fg = palette.fg, bg = palette.bg },
+                z = { fg = palette.bg, bg = palette.accent },
             },
             insert = {
-                a = { fg = '#000000', bg = '#AA5F09' },
-                z = { fg = '#000000', bg = '#D77F00' },
+                a = { fg = palette.bg, bg = palette.insert },
+                z = { fg = palette.bg, bg = palette.accent },
             },
 
             visual = {
-                a = { fg = '#000000', bg = '#FFD700' },
-                z = { fg = '#000000', bg = '#D77F00' },
+                a = { fg = palette.bg, bg = palette.visual },
+                z = { fg = palette.bg, bg = palette.accent },
             },
 
             replace = {
-                a = { fg = '#000000', bg = '#FF0000' },
-                z = { fg = '#000000', bg = '#D77F00' },
+                a = { fg = palette.bg, bg = palette.replace },
+                z = { fg = palette.bg, bg = palette.accent },
             },
 
             command = {
-                a = { fg = '#000000', bg = '#6D6D78' },
-                z = { fg = '#000000', bg = '#D77F00' },
+                a = { fg = palette.bg, bg = palette.command },
+                z = { fg = palette.bg, bg = palette.accent },
             },
 
             inactive = {
@@ -46,12 +69,15 @@ return {
         }
 
         ---@diagnostic disable: undefined-global
-        vim.api.nvim_set_hl(0, 'LualineSeparatorSpecial', { fg = '#D77F00', bg = '#000000' })
+        vim.api.nvim_set_hl(0, "LualineSeparatorSpecial", {
+            fg = palette.accent,
+            bg = palette.bg,
+        })
 
         local git_blame = require('gitblame')
         require('lualine').setup({
             options = {
-                theme = dune_lualine_theme,
+                theme = desktop_lualine_theme,
                 component_separators = { left = '', right = '' },
                 section_separators = { left = '', right = '' },
             },

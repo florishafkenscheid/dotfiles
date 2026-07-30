@@ -85,4 +85,17 @@ require("blousy.floaterminal")
 --------------------
 --  Colorscheme   --
 --------------------
-vim.cmd.colorscheme("dune")
+local colorscheme = "dune"
+local state_home = vim.env.XDG_STATE_HOME or vim.fn.expand("~/.local/state")
+local colorscheme_state = state_home .. "/blousy/nvim-colorscheme"
+
+if vim.fn.filereadable(colorscheme_state) == 1 then
+	local selected = vim.fn.readfile(colorscheme_state, "", 1)[1]
+	if selected and selected:match("^[%w_-]+$") then
+		colorscheme = selected
+	end
+end
+
+if not pcall(vim.cmd.colorscheme, colorscheme) then
+	vim.cmd.colorscheme("dune")
+end

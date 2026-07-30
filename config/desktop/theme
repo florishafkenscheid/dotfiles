@@ -1,0 +1,330 @@
+#!/bin/sh
+
+# Persist a selected desktop theme and expose the small native fragment that
+# niri cannot consume directly from Quickshell's JSON catalog.
+
+set -eu
+
+config_home="${XDG_CONFIG_HOME:-/home/blousy/.config}"
+state_home="${XDG_STATE_HOME:-/home/blousy/.local/state}"
+catalog="${config_home}/desktop/themes/catalog.json"
+state_dir="${state_home}/blousy"
+current_file="${state_dir}/theme"
+niri_file="${state_dir}/niri-theme.kdl"
+hypr_file="${state_dir}/hypr-theme.conf"
+fastfetch_link="${state_dir}/fastfetch-image.png"
+fastfetch_file="${state_dir}/fastfetch.jsonc"
+neovim_file="${state_dir}/nvim-colorscheme"
+starship_file="${state_dir}/starship.toml"
+mako_file="${state_dir}/mako-theme"
+rofi_file="${state_dir}/rofi-theme.rasi"
+zen_file="${state_dir}/zen-theme.css"
+legacy_zen_file="${state_dir}/zen-theme.json"
+zen_hook_source="${config_home}/desktop/zen-theme.uc.js"
+
+usage() {
+    printf 'Usage: %s {apply THEME|current|list}\n' "$0" >&2
+    exit 2
+}
+
+catalog_value() {
+    key="$1"
+    theme_id="$2"
+    jq -er --arg id "$theme_id" \
+        ".themes[] | select(.id == \$id) | ${key}" "$catalog"
+}
+
+default_theme() {
+    jq -er '.default' "$catalog"
+}
+
+resolve_asset() {
+    asset_path="$1"
+    catalog_dir="$(dirname -- "$catalog")"
+
+    case "$asset_path" in
+        "\$HOME"/*) printf '%s\n' "${HOME}${asset_path#\$HOME}" ;;
+        "~"/*) printf '%s\n' "${HOME}${asset_path#\~}" ;;
+        /*) printf '%s\n' "$asset_path" ;;
+        *) printf '%s\n' "${catalog_dir}/${asset_path}" ;;
+    esac
+}
+
+install_zen_hook() {
+    [ -r "$zen_hook_source" ] || return 1
+
+    for zen_js_dir in "$config_home"/zen/*/chrome/JS; do
+        [ -d "$zen_js_dir" ] || continue
+        zen_hook="${zen_js_dir}/blousy-theme.uc.js"
+        if [ -f "$zen_hook" ] && cmp -s "$zen_hook_source" "$zen_hook"; then
+            continue
+        fi
+
+        zen_hook_tmp="$(mktemp "${zen_hook}.XXXXXX")"
+        cp "$zen_hook_source" "$zen_hook_tmp"
+        chmod 0644 "$zen_hook_tmp"
+        mv -f "$zen_hook_tmp" "$zen_hook"
+    done
+
+    # Remove the first CSS-only attempt. file:// imports from a privileged
+    # author sheet are unreliable and cannot hot-reload.
+    for zen_css in "$config_home"/zen/*/chrome/resources/userChrome.au.css; do
+        [ -f "$zen_css" ] || continue
+        if ! grep -Fq 'blousy/zen-theme.css' "$zen_css"; then
+            continue
+        fi
+
+        zen_css_tmp="$(mktemp "${zen_css}.XXXXXX")"
+        sed '\|blousy/zen-theme.css|d' "$zen_css" >"$zen_css_tmp"
+        chmod --reference="$zen_css" "$zen_css_tmp"
+        mv -f "$zen_css_tmp" "$zen_css"
+    done
+}
+
+case "${1:-}" in
+    list)
+        jq -r '.themes[] | [.id, .name] | @tsv' "$catalog"
+        ;;
+    current)
+        if [ -r "$current_file" ]; then
+            sed -n '1p' "$current_file"
+        else
+            default_theme
+        fi
+        ;;
+    apply)
+        [ "$#" -eq 2 ] || usage
+        theme_id="$2"
+
+        # jq -e doubles as strict validation: unknown IDs never reach a path or
+        # generated config file.
+        wallpaper_rel="$(catalog_value '.wallpaper' "$theme_id")"
+        fastfetch_rel="$(catalog_value '.fastfetchImage' "$theme_id")"
+        neovim_colorscheme="$(catalog_value '.neovimColorscheme' "$theme_id")"
+        accent="$(catalog_value '.palette.accent' "$theme_id")"
+        accent_bright="$(catalog_value '.palette.accentBright' "$theme_id")"
+        background_opaque="$(catalog_value '.palette.backgroundOpaque' "$theme_id")"
+        foreground_opaque="$(catalog_value '.palette.foregroundOpaque' "$theme_id")"
+        secondary="$(catalog_value '.palette.secondary' "$theme_id")"
+        inactive="$(catalog_value '.palette.niriInactive' "$theme_id")"
+        wallpaper="$(resolve_asset "$wallpaper_rel")"
+        fastfetch_image="$(resolve_asset "$fastfetch_rel")"
+
+        case "$theme_id" in
+            ""|*[!A-Za-z0-9_-]*)
+                printf 'Invalid theme ID: %s\n' "$theme_id" >&2
+                exit 1
+                ;;
+        esac
+        if [ ! -f "$wallpaper" ]; then
+            printf 'Theme wallpaper does not exist: %s\n' "$wallpaper" >&2
+            exit 1
+        fi
+        if [ ! -f "$fastfetch_image" ]; then
+            printf 'Theme fastfetch image does not exist: %s\n' \
+                "$fastfetch_image" >&2
+            exit 1
+        fi
+        case "$neovim_colorscheme" in
+            ""|*[!A-Za-z0-9_-]*)
+                printf 'Invalid Neovim colorscheme: %s\n' \
+                    "$neovim_colorscheme" >&2
+                exit 1
+                ;;
+        esac
+        if [ ! -f "${config_home}/nvim/colors/${neovim_colorscheme}.vim" ] \
+            && [ ! -f "${config_home}/nvim/colors/${neovim_colorscheme}.lua" ]; then
+            printf 'Neovim colorscheme does not exist: %s\n' \
+                "$neovim_colorscheme" >&2
+            exit 1
+        fi
+        if ! grep -Fq "[palettes.${theme_id}]" \
+            "${config_home}/starship.toml"; then
+            printf 'Starship palette does not exist: %s\n' "$theme_id" >&2
+            exit 1
+        fi
+
+        mkdir -p "$state_dir"
+        temporary_dir="$(mktemp -d "${state_dir}/theme.XXXXXX")"
+        current_tmp="${temporary_dir}/theme"
+        niri_tmp="${temporary_dir}/niri-theme.kdl"
+        hypr_tmp="${temporary_dir}/hypr-theme.conf"
+        fastfetch_link_tmp="${temporary_dir}/fastfetch-image.png"
+        fastfetch_tmp="${temporary_dir}/fastfetch.jsonc"
+        neovim_tmp="${temporary_dir}/nvim-colorscheme"
+        starship_tmp="${temporary_dir}/starship.toml"
+        mako_tmp="${temporary_dir}/mako-theme"
+        rofi_tmp="${temporary_dir}/rofi-theme.rasi"
+        zen_tmp="${temporary_dir}/zen-theme.css"
+
+        cleanup() {
+            rm -f "$current_tmp" "$niri_tmp" "$hypr_tmp" \
+                "$fastfetch_link_tmp" \
+                "$fastfetch_tmp" "$neovim_tmp" "$starship_tmp" \
+                "$mako_tmp" "$rofi_tmp" "$zen_tmp"
+            rmdir "$temporary_dir" 2>/dev/null || true
+        }
+        trap cleanup EXIT HUP INT TERM
+
+        printf '%s\n' "$theme_id" >"$current_tmp"
+        printf '%s\n' "$neovim_colorscheme" >"$neovim_tmp"
+        ln -s "$fastfetch_image" "$fastfetch_link_tmp"
+        {
+            printf 'layout {\n'
+            printf '    border {\n'
+            printf '        active-color "%s"\n' "$accent"
+            printf '        inactive-color "%s"\n' "$inactive"
+            printf '    }\n'
+            printf '}\n'
+        } >"$niri_tmp"
+        {
+            printf 'general {\n'
+            printf '    col.active_border = rgb(%s) rgb(%s) 35deg\n' \
+                "${accent#\#}" "${accent_bright#\#}"
+            printf '    col.inactive_border = rgba(%s77)\n' \
+                "${inactive#\#}"
+            printf '}\n'
+        } >"$hypr_tmp"
+        awk \
+            -v image="$fastfetch_image" \
+            -v accent="$accent" \
+            -v foreground="$foreground_opaque" '
+                /^[[:space:]]*"source":/ {
+                    printf "      \"source\": \"%s\",\n", image
+                    next
+                }
+                /^[[:space:]]*"keys":/ {
+                    printf "        \"keys\": \"%s\",\n", accent
+                    next
+                }
+                /^[[:space:]]*"title":/ {
+                    printf "        \"title\": \"%s\"\n", foreground
+                    next
+                }
+                { print }
+            ' "${config_home}/fastfetch/config.jsonc" >"$fastfetch_tmp"
+        sed "s/^palette = .*/palette = '${theme_id}'/" \
+            "${config_home}/starship.toml" >"$starship_tmp"
+        {
+            printf 'background-color=%sF2\n' "$background_opaque"
+            printf 'text-color=%sFF\n' "$foreground_opaque"
+            printf 'border-color=%sFF\n' "$accent"
+            printf 'progress-color=over %sCC\n' "$accent_bright"
+        } >"$mako_tmp"
+        {
+            printf '* {\n'
+            printf '    fg2: %s;\n' "$accent"
+            printf '    colorbg: %sCC;\n' "$background_opaque"
+            printf '    textfg: %s;\n' "$foreground_opaque"
+            printf '    transparentcolorbg: %s4D;\n' "$accent"
+            printf '    borderfg: %s80;\n' "$accent"
+            printf '    windowbg: %sCC;\n' "$background_opaque"
+            printf '}\n'
+        } >"$rofi_tmp"
+        {
+            printf ':root {\n'
+            printf '    --blousy-zen-primary: %s;\n' "$accent"
+            printf '    --blousy-zen-secondary: %s;\n' "$secondary"
+            printf '    --blousy-zen-background: %s;\n' "$background_opaque"
+            printf '    --zen-primary-color: %s !important;\n' "$accent"
+            printf '    --zen-colors-primary: %s !important;\n' "$accent"
+            printf '    --zen-colors-secondary: %s !important;\n' "$secondary"
+            printf '    --zen-colors-tertiary: %s !important;\n' \
+                "$background_opaque"
+            printf '    --zen-main-browser-background: %s !important;\n' \
+                "$background_opaque"
+            printf '    --zen-main-browser-background-toolbar: %s !important;\n' \
+                "$background_opaque"
+            printf '    --zen-main-browser-background-old: %s !important;\n' \
+                "$background_opaque"
+            printf '    --zen-main-browser-background-toolbar-old: %s !important;\n' \
+                "$background_opaque"
+            printf '    --zen-background-opacity: 1 !important;\n'
+            printf '    --toolbar-bgcolor: %s !important;\n' "$background_opaque"
+            printf '    --toolbar-color: %s !important;\n' "$foreground_opaque"
+            printf '    --sidebar-background-color: %s !important;\n' \
+                "$background_opaque"
+            printf '    --nebula-ui-tint: transparent !important;\n'
+            printf '}\n\n'
+            printf '#zen-main-app-wrapper {\n'
+            printf '    background: %s !important;\n' "$background_opaque"
+            printf '}\n\n'
+            printf '#navigator-toolbox {\n'
+            printf '    background: linear-gradient(\n'
+            printf '        180deg,\n'
+            printf '        %s 0%%,\n' "$secondary"
+            printf '        %s 100%%\n' "$background_opaque"
+            printf '    ) !important;\n'
+            printf '}\n\n'
+            printf '.zen-browser-generic-background::before {\n'
+            printf '    background: %s !important;\n' "$background_opaque"
+            printf '    opacity: 0 !important;\n'
+            printf '    transition: none !important;\n'
+            printf '}\n\n'
+            printf '.zen-browser-generic-background::after {\n'
+            printf '    background: %s !important;\n' "$background_opaque"
+            printf '    opacity: 1 !important;\n'
+            printf '    transition: none !important;\n'
+            printf '}\n\n'
+            printf '.zen-browser-generic-background.zen-toolbar-background::before {\n'
+            printf '    background: linear-gradient(\n'
+            printf '        180deg,\n'
+            printf '        %s 0%%,\n' "$secondary"
+            printf '        %s 100%%\n' "$background_opaque"
+            printf '    ) !important;\n'
+            printf '    opacity: 0 !important;\n'
+            printf '}\n\n'
+            printf '.zen-browser-generic-background.zen-toolbar-background::after {\n'
+            printf '    background: linear-gradient(\n'
+            printf '        180deg,\n'
+            printf '        %s 0%%,\n' "$secondary"
+            printf '        %s 100%%\n' "$background_opaque"
+            printf '    ) !important;\n'
+            printf '    opacity: 1 !important;\n'
+            printf '}\n\n'
+            printf '.browserContainer {\n'
+            printf '    background: linear-gradient(\n'
+            printf '        90deg,\n'
+            printf '        %s 0%%,\n' "$background_opaque"
+            printf '        %s 100%%\n' "$accent"
+            printf '    ) !important;\n'
+            printf '}\n'
+        } >"$zen_tmp"
+
+        # Freeze first so Quickshell and niri can redraw as one visual change.
+        if [ -n "${NIRI_SOCKET:-}" ]; then
+            niri msg action do-screen-transition --delay-ms 180 \
+                >/dev/null 2>&1 || true
+        fi
+
+        mv -f "$niri_tmp" "$niri_file"
+        mv -f "$hypr_tmp" "$hypr_file"
+        mv -fT "$fastfetch_link_tmp" "$fastfetch_link"
+        mv -f "$fastfetch_tmp" "$fastfetch_file"
+        mv -f "$neovim_tmp" "$neovim_file"
+        mv -f "$starship_tmp" "$starship_file"
+        mv -f "$mako_tmp" "$mako_file"
+        mv -f "$rofi_tmp" "$rofi_file"
+        mv -f "$zen_tmp" "$zen_file"
+        mv -f "$current_tmp" "$current_file"
+        rmdir "$temporary_dir"
+        trap - EXIT HUP INT TERM
+
+        rm -f "$legacy_zen_file"
+        if [ -n "${NIRI_SOCKET:-}" ]; then
+            niri msg action load-config-file >/dev/null 2>&1 || true
+        fi
+        if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+            hyprctl reload >/dev/null 2>&1 || true
+        fi
+        install_zen_hook || {
+            printf 'Warning: could not install the Zen theme hook.\n' >&2
+        }
+        if command -v makoctl >/dev/null 2>&1; then
+            makoctl reload >/dev/null 2>&1 || true
+        fi
+        ;;
+    *)
+        usage
+        ;;
+esac

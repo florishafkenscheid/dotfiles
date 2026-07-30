@@ -26,8 +26,8 @@ return {
         dashboard.section.header.opts.hl = "AlphaHeader"
         dashboard.section.buttons.opts.hl = "AlphaButtons"
 
-        vim.api.nvim_set_hl(0, "AlphaHeader", { fg = "#F2870D", bold = true })
-        vim.api.nvim_set_hl(0, "AlphaButtons", { fg = "#E8E7E3" })
+        vim.api.nvim_set_hl(0, "AlphaHeader", { link = "Title" })
+        vim.api.nvim_set_hl(0, "AlphaButtons", { link = "Directory" })
 
         alpha.setup(dashboard.opts)
     end,
