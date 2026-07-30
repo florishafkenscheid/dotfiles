@@ -30,6 +30,12 @@ notifications and graphical helpers. Session-specific Wayland state is not
 imported into the shared systemd user manager. This reduces cross-session
 activation mistakes while retaining the same Unix account and home directory.
 
+Zen keeps one shared browser profile. Because Firefox-family profiles cannot be
+opened by two processes concurrently, invoking Zen from the other desktop asks
+the existing process to shut down, waits for the profile lock to be released,
+and relaunches Zen on the invoking desktop. This preserves browser state without
+splitting the profile or switching VTs.
+
 Autologin means anyone with physical access after boot can use both unlocked
 desktops. Greetd runs each initial session once per boot; deliberately logging
 out of one desktop returns that VT to tuigreet instead of immediately logging

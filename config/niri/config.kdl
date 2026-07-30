@@ -99,7 +99,7 @@ binds {
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
 
     Mod+Return hotkey-overlay-title="Open Kitty" { spawn "kitty"; }
-    Mod+Shift+Return hotkey-overlay-title="Open Zen Browser" { spawn "zen-browser"; }
+    Mod+Shift+Return hotkey-overlay-title="Open Zen Browser" { spawn "/home/blousy/.config/desktop/launch-zen"; }
     Ctrl+Space hotkey-overlay-title="Application Launcher" { spawn "rofi" "-show" "drun"; }
     Mod+V hotkey-overlay-title="Clipboard History" { spawn "kitty" "--class" "clipse" "-e" "clipse"; }
     Mod+Shift+D hotkey-overlay-title="Switch Desktop" { spawn "/home/blousy/.config/desktop/switch"; }
