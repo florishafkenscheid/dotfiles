@@ -71,15 +71,20 @@ layout {
     }
 }
 
+// The theme switcher writes this tiny fragment. Its position after layout is
+// intentional: included colors override the matching defaults above. Niri
+// watches the file and reloads it automatically.
+include optional=true "~/.local/state/blousy/niri-theme.kdl"
+
 prefer-no-csd
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
-// Quickshell owns the panel; the other helpers are deliberately session-local.
+// Quickshell owns both the panel and wallpaper; the other helpers are
+// deliberately session-local.
 spawn-at-startup "qs" "-c" "blousy"
 spawn-at-startup "mako"
 spawn-at-startup "clipse" "-listen"
 spawn-at-startup "/usr/lib/hyprpolkitagent/hyprpolkitagent"
-spawn-at-startup "swaybg" "-o" "DP-2" "-i" "/home/blousy/Wallpapers/dune.png" "-m" "fill" "-o" "HDMI-A-1" "-c" "#000000"
 
 hotkey-overlay {
     skip-at-startup
@@ -102,6 +107,7 @@ binds {
     Mod+Shift+Return hotkey-overlay-title="Open Zen Browser" { spawn "/home/blousy/.config/desktop/launch-zen"; }
     Ctrl+Space hotkey-overlay-title="Application Launcher" { spawn "rofi" "-show" "drun"; }
     Mod+V hotkey-overlay-title="Clipboard History" { spawn "kitty" "--class" "clipse" "-e" "clipse"; }
+    Mod+Shift+T hotkey-overlay-title="Theme Switcher" { spawn "qs" "ipc" "--any-display" "-c" "blousy" "call" "theme" "toggle"; }
     Mod+Shift+D hotkey-overlay-title="Switch Desktop" { spawn "/home/blousy/.config/desktop/switch"; }
 
     Mod+W { close-window; }

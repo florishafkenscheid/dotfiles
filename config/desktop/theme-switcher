@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -eu
+
+toggle() {
+    qs ipc -c "$1" call theme toggle >/dev/null 2>&1
+}
+
+# Niri already runs the complete shell. Hyprland runs the smaller wallpaper
+# and switcher-only shell. Display filtering prevents a persistent session on
+# another VT from receiving the request.
+if toggle blousy; then
+    exit 0
+fi
+
+qs --no-duplicate --daemonize -c blousy >/dev/null 2>&1 || true
+
+attempt=0
+while [ "$attempt" -lt 50 ]; do
+    if toggle blousy; then
+        exit 0
+    fi
+
+    attempt=$((attempt + 1))
+    sleep 0.05
+done
+
+printf 'Could not start the theme switcher.\n' >&2
+exit 1

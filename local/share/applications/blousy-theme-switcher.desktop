@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Theme Switcher
+GenericName=Desktop Theme Switcher
+Comment=Preview and apply a desktop theme
+Exec=/home/blousy/.config/desktop/theme-switcher
+Icon=preferences-desktop-theme
+Categories=Settings;DesktopSettings;
+Keywords=theme;appearance;wallpaper;colors;
+Terminal=false
+StartupNotify=false
