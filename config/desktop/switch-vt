@@ -19,7 +19,7 @@ notify() {
 
 desktop_label() {
     case "$1" in
-        hyprland) printf '%s\n' "Hyprland / Eww" ;;
+        hyprland) printf '%s\n' "Hyprland / Quickshell" ;;
         niri) printf '%s\n' "Niri / Quickshell" ;;
     esac
 }

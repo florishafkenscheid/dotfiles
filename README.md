@@ -8,15 +8,17 @@ With "bare bones", I mean a lean system focussing on functionality and minimal o
 - **systemd-{networkd,resolvd}** over NetworkManager: This PC will not connect to anything other than ethernet.
 - **NeoVim** over VSCode: Prioritizing a customizable and keyboard-driven editor seems fitting for this setup.
 
-The theme is based on the Dune movies, focussing on the vibrant oranges used in the cinematography.
+The original Arrakis theme is based on the Dune movies; both desktops also
+ship an Arcane/Miasma theme selected through their shared Quickshell switcher.
 
 > [!IMPORTANT]
 > These files are symlinked to the right place using [GNU Stow](https://brandon.invergo.net/news/2012-05-26-using-gnu-stow-to-manage-your-dotfiles.html).
 
 ## Desktop sessions
 
-Hyprland/Eww remains the gaming and entertainment desktop. Niri/Quickshell is
-the development desktop. Both compositors are logged in automatically at boot:
+Hyprland remains the gaming and entertainment desktop, while Niri is the
+development desktop. Both use the same Quickshell bar, wallpaper, and theme
+switcher. Both compositors are logged in automatically at boot:
 Niri starts on VT2 first, then Hyprland starts on VT1 and remains visible.
 
 Use `Super+Shift+D` or click the plain Arch logo in either bar to switch.
@@ -58,7 +60,7 @@ current compositor and launches the other one. Its implementation lives in
 The Niri session currently expects these additional Arch packages:
 
 ```sh
-sudo pacman -S niri quickshell swaybg xwayland-satellite
+sudo pacman -S niri quickshell xwayland-satellite
 ```
 
 Add `xdg-desktop-portal-gnome` when Niri screencasting is needed; the existing
@@ -82,8 +84,11 @@ Reboot to start both sessions. `greetd-niri.service` waits briefly for the
 VT2 registration before the primary greetd instance starts on VT1, so Hyprland
 is the desktop left on screen.
 
-The future multi-theme layout is documented in
-`~/.config/desktop/themes/README.md`; Dune remains the only implemented theme.
+The Quickshell theme switcher is available in both sessions from the desktop
+application launcher or with `Super+Shift+T`. It provides live previews of the
+tracked themes and persists the selection across sessions. The deliberately
+small catalog and extension notes live in
+`~/.config/desktop/themes/README.md`.
 
 ## Progress
 > [!NOTE]
@@ -104,8 +109,8 @@ The future multi-theme layout is documented in
   - [x] `treesitter`
   - [x] `web-devicons`
 - [ ] Kitty - `~/.config/kitty/`
-- [ ] ~~Waybar - `~/.config/waybar/`~~ ↩️ *(Replaced by EWW)*
-- [x] EWW - `~/.config/eww/`
+- [ ] ~~Waybar - `~/.config/waybar/`~~ ↩️ *(Replaced by Quickshell)*
+- [x] ~~EWW - `~/.config/eww/`~~ *(Replaced by Quickshell)*
 - [ ] Niri - `~/.config/niri/` ⏳
 - [ ] Quickshell - `~/.config/quickshell/blousy/` ⏳
 - [x] hypridle - `~/.config/hypr/hypridle.conf`
@@ -117,17 +122,6 @@ The future multi-theme layout is documented in
 - [ ] ~~mpd~~ ↩️
 - [ ] ~~rmpc~~
 - [ ] spotify-player - `~/.config/spotify-player/app.toml`
-
-### EWW
-> [!NOTE]
-> Some ideas on what to display using EWW as the top bar.
-- CPU & GPU usage in %
-    - Clickable for temps?
-- Memory Usage (percentage? gb free?)
-- Mullvad status
-- Time
-- Spaces in middle or left, with name or icon of active window(s)
-- Spotify now playing
 
 ### Idle Screensaver
 - `hypridle` starts a non-locking idle screensaver after 3 minutes.

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Hyprland · Gaming
-Comment=Hyprland and Eww, with in-session desktop switching
+Comment=Hyprland and Quickshell, with in-session desktop switching
 Exec=desktop-session hyprland
 TryExec=desktop-session
 Type=Application

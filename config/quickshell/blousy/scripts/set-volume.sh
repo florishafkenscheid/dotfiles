@@ -3,9 +3,9 @@ set -euo pipefail
 
 ACTION="${1:-}"
 VALUE="${2:-}"
-STATE_FILE="/tmp/eww-tidal-volume"
-CACHE_FILE="/tmp/eww-volume-cache"
-LOCK_FILE="/tmp/eww-volume.lock"
+STATE_FILE="/tmp/blousy-tidal-volume"
+CACHE_FILE="/tmp/blousy-volume-cache"
+LOCK_FILE="/tmp/blousy-volume.lock"
 CACHE_TTL_MS=1500
 TIDAL_BINARY="${TIDAL_BINARY:-tidal-hifi}"
 

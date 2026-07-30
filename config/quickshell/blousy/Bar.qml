@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 
 Scope {
@@ -7,6 +8,11 @@ Scope {
 
     required property var theme
 
+    readonly property bool isHyprland:
+        Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") !== ""
+    readonly property bool isNiri: Quickshell.env("NIRI_SOCKET") !== ""
+    readonly property string helperDir:
+        Quickshell.env("HOME") + "/.config/quickshell/blousy/scripts"
     property int cpuPercent: 0
     property int gpuPercent: 0
     property int memoryPercent: 0
@@ -24,6 +30,12 @@ Scope {
         "muted": false,
         "icon": "󰖀"
     })
+    property var mouseBattery: ({
+        "available": false,
+        "percent": 0,
+        "icon": "󰂑",
+        "class": "unavailable"
+    })
     property string vpnState: "disconnected"
 
     function parseJson(text, fallback) {
@@ -39,9 +51,30 @@ Scope {
             switchProcess.running = true;
     }
 
-    function focusWindow(id): void {
+    function focusNiriWindow(id): void {
         if (!niriAction.running)
             niriAction.exec(["niri", "msg", "action", "focus-window", "--id", String(id)]);
+    }
+
+    function focusHyprWindow(toplevel): void {
+        if (!toplevel)
+            return;
+
+        if (toplevel.wayland) {
+            toplevel.wayland.activate();
+        } else if (toplevel.address) {
+            Hyprland.dispatch("focuswindow address:" + toplevel.address);
+        }
+    }
+
+    function hyprAppId(toplevel) {
+        if (!toplevel)
+            return "";
+
+        const details = toplevel.lastIpcObject || {};
+        if (details.initialClass || details.class)
+            return details.initialClass || details.class;
+        return toplevel.wayland ? toplevel.wayland.appId : "";
     }
 
     function windowIcon(appId) {
@@ -93,7 +126,7 @@ Scope {
 
     function changeVolume(action, value): void {
         if (!volumeAction.running) {
-            const command = ["/home/blousy/.config/eww/scripts/set-volume.sh", action];
+            const command = [root.helperDir + "/set-volume.sh", action];
             if (value !== undefined)
                 command.push(String(value));
             volumeAction.exec(command);
@@ -182,6 +215,7 @@ Scope {
 
     CommandPoll {
         interval: 750
+        enabled: root.isNiri
         command: ["niri", "msg", "-j", "workspaces"]
 
         onUpdated: text => {
@@ -193,6 +227,7 @@ Scope {
 
     CommandPoll {
         interval: 500
+        enabled: root.isNiri
         command: ["niri", "msg", "-j", "windows"]
 
         onUpdated: text => {
@@ -203,7 +238,7 @@ Scope {
     }
 
     CommandPoll {
-        command: ["/home/blousy/.config/eww/scripts/get-now-playing.sh"]
+        command: [root.helperDir + "/get-now-playing.sh"]
 
         onUpdated: text => {
             root.mediaData = root.parseJson(text, root.mediaData);
@@ -213,10 +248,19 @@ Scope {
     CommandPoll {
         id: volumePoll
         interval: 1000
-        command: ["/home/blousy/.config/eww/scripts/get-volume.sh"]
+        command: [root.helperDir + "/get-volume.sh"]
 
         onUpdated: text => {
             root.volumeData = root.parseJson(text, root.volumeData);
+        }
+    }
+
+    CommandPoll {
+        interval: 120000
+        command: [root.helperDir + "/get-lamzu-battery.py"]
+
+        onUpdated: text => {
+            root.mouseBattery = root.parseJson(text, root.mouseBattery);
         }
     }
 
@@ -238,6 +282,10 @@ Scope {
 
             required property var modelData
             readonly property var outputWindows: root.windowsForOutput(modelData.name)
+            readonly property var hyprMonitor:
+                root.isHyprland ? Hyprland.monitorFor(modelData) : null
+            readonly property var hyprWorkspace:
+                hyprMonitor ? hyprMonitor.activeWorkspace : null
 
             screen: modelData
             color: "transparent"
@@ -358,7 +406,7 @@ Scope {
                     spacing: 4
 
                     Repeater {
-                        model: panel.outputWindows
+                        model: root.isNiri ? panel.outputWindows : []
 
                         delegate: Item {
                             id: windowItem
@@ -445,7 +493,82 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.focusWindow(modelData.window.id)
+                                onClicked: root.focusNiriWindow(modelData.window.id)
+                            }
+                        }
+                    }
+
+                    Repeater {
+                        model: root.isHyprland && panel.hyprWorkspace
+                            ? panel.hyprWorkspace.toplevels : 0
+
+                        delegate: Item {
+                            required property var modelData
+
+                            width: 52
+                            height: 58
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 52
+                                height: 52
+                                radius: 10
+                                color: modelData.activated
+                                    ? root.theme.accentMuted
+                                    : hyprWindowMouse.containsMouse
+                                        ? root.theme.surfaceHover : "transparent"
+                                border.width: modelData.activated ? 2 : 0
+                                border.color: modelData.activated
+                                    ? root.theme.accent : "transparent"
+
+                                Behavior on color {
+                                    ColorAnimation { duration: 160 }
+                                }
+
+                                Image {
+                                    id: hyprAppIcon
+
+                                    anchors.centerIn: parent
+                                    width: 30
+                                    height: 30
+                                    source: root.windowIcon(root.hyprAppId(modelData))
+                                    sourceSize.width: 30
+                                    sourceSize.height: 30
+                                    fillMode: Image.PreserveAspectFit
+                                    opacity: modelData.activated ? 1 : 0.72
+                                    scale: modelData.activated ? 1.08 : 1
+
+                                    Behavior on opacity {
+                                        NumberAnimation { duration: 150 }
+                                    }
+
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: 180
+                                            easing.type: Easing.OutBack
+                                        }
+                                    }
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰣆"
+                                    color: modelData.activated
+                                        ? root.theme.accent : root.theme.foregroundMuted
+                                    visible: hyprAppIcon.status === Image.Error
+                                        || hyprAppIcon.status === Image.Null
+                                    font.family: root.theme.fontFamily
+                                    font.pixelSize: 28
+                                }
+                            }
+
+                            MouseArea {
+                                id: hyprWindowMouse
+
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.focusHyprWindow(modelData)
                             }
                         }
                     }
@@ -505,6 +628,60 @@ Scope {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 1
                         height: 34
+                        color: root.theme.divider
+                    }
+
+                    Item {
+                        width: root.mouseBattery.available
+                            ? mouseBatteryRow.implicitWidth + 20 : 0
+                        height: 54
+                        visible: root.mouseBattery.available
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 9
+                            color: mouseBatteryMouse.containsMouse
+                                ? root.theme.surfaceHover : "transparent"
+                        }
+
+                        Row {
+                            id: mouseBatteryRow
+
+                            anchors.centerIn: parent
+                            spacing: 8
+
+                            Text {
+                                text: root.mouseBattery.icon
+                                color: root.mouseBattery.percent <= 20
+                                    ? root.theme.accentBright
+                                    : root.theme.foregroundMuted
+                                font.family: root.theme.fontFamily
+                                font.pixelSize: 28
+                            }
+
+                            Text {
+                                text: root.mouseBattery.percent + "%"
+                                visible: mouseBatteryMouse.containsMouse
+                                    || root.mouseBattery.percent <= 20
+                                color: root.theme.foregroundMuted
+                                font.family: root.theme.monoFontFamily
+                                font.pixelSize: 18
+                            }
+                        }
+
+                        MouseArea {
+                            id: mouseBatteryMouse
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: root.mouseBattery.available ? 1 : 0
+                        height: 34
+                        visible: root.mouseBattery.available
                         color: root.theme.divider
                     }
 

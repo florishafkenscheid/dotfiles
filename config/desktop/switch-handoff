@@ -22,7 +22,8 @@ notify() {
 target_available() {
     case "$1" in
         hyprland)
-            command -v start-hyprland-quietly >/dev/null 2>&1
+            command -v start-hyprland-quietly >/dev/null 2>&1 &&
+                command -v qs >/dev/null 2>&1
             ;;
         niri)
             command -v niri >/dev/null 2>&1 &&
@@ -75,8 +76,8 @@ if ! target_available "$target"; then
         notify "Niri / Quickshell is not ready" \
             "Install the niri and quickshell packages first."
     else
-        notify "Hyprland / Eww is not ready" \
-            "start-hyprland-quietly is missing."
+        notify "Hyprland / Quickshell is not ready" \
+            "Install Hyprland and Quickshell first."
     fi
     exit 1
 fi

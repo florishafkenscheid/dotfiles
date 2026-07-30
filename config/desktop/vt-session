@@ -29,12 +29,13 @@ case "$desktop" in
             printf 'niri is not installed.\n' >&2
             exit 127
         }
-        command -v qs >/dev/null 2>&1 || {
-            printf 'quickshell is not installed.\n' >&2
-            exit 127
-        }
         ;;
 esac
+
+command -v qs >/dev/null 2>&1 || {
+    printf 'quickshell is not installed.\n' >&2
+    exit 127
+}
 
 if ! command -v dbus-run-session >/dev/null 2>&1; then
     printf 'dbus-run-session is required for isolated desktop sessions.\n' >&2
@@ -95,6 +96,14 @@ BLOUSY_DESKTOP_MODE="vt"
 BLOUSY_DESKTOP="$desktop"
 XDG_SESSION_TYPE="wayland"
 export BLOUSY_DESKTOP_MODE BLOUSY_DESKTOP XDG_SESSION_TYPE
+
+theme_command="${XDG_CONFIG_HOME:-/home/blousy/.config}/desktop/theme"
+if [ -x "$theme_command" ]; then
+    selected_theme="$("$theme_command" current 2>/dev/null || :)"
+    if [ -n "$selected_theme" ]; then
+        "$theme_command" apply "$selected_theme" >/dev/null 2>&1 || true
+    fi
+fi
 
 case "$desktop" in
     hyprland)

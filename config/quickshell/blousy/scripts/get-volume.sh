@@ -6,7 +6,7 @@ percent=0
 muted=false
 icon="󰖀"
 active=false
-CACHE_FILE="/tmp/eww-volume-cache"
+CACHE_FILE="/tmp/blousy-volume-cache"
 CACHE_TTL_MS=1500
 TIDAL_BINARY="${TIDAL_BINARY:-tidal-hifi}"
 

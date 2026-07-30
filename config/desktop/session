@@ -36,7 +36,8 @@ is_desktop() {
 desktop_available() {
     case "$1" in
         hyprland)
-            command -v start-hyprland-quietly >/dev/null 2>&1
+            command -v start-hyprland-quietly >/dev/null 2>&1 &&
+                command -v qs >/dev/null 2>&1
             ;;
         niri)
             command -v niri >/dev/null 2>&1 &&
@@ -47,7 +48,7 @@ desktop_available() {
 
 desktop_label() {
     case "$1" in
-        hyprland) printf '%s\n' "Hyprland / Eww" ;;
+        hyprland) printf '%s\n' "Hyprland / Quickshell" ;;
         niri) printf '%s\n' "Niri / Quickshell" ;;
     esac
 }
@@ -98,11 +99,17 @@ while :; do
 
     if ! desktop_available "$target"; then
         printf '%s is not installed completely.\n' "$(desktop_label "$target")" >&2
-        if [ "$target" = "niri" ]; then
-            printf 'Install at least: niri quickshell\n' >&2
-        fi
+        printf 'Install Quickshell and the selected compositor.\n' >&2
         sleep 3
         exit 127
+    fi
+
+    theme_command="${XDG_CONFIG_HOME:-/home/blousy/.config}/desktop/theme"
+    if [ -x "$theme_command" ]; then
+        selected_theme="$("$theme_command" current 2>/dev/null || :)"
+        if [ -n "$selected_theme" ]; then
+            "$theme_command" apply "$selected_theme" >/dev/null 2>&1 || true
+        fi
     fi
 
     launch_desktop "$target"
