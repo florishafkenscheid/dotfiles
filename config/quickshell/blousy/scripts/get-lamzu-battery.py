@@ -10,6 +10,8 @@ from pathlib import Path
 VENDOR_ID = "373e"
 PRODUCT_IDS = {"001e": "wireless", "001c": "wired"}
 FEATURE_LEN = 65
+CACHE_FRESH_SECONDS = 60
+CACHE_FALLBACK_SECONDS = 90
 
 
 def ioc(direction, request_type, nr, size):
@@ -186,11 +188,50 @@ def unavailable(error):
     }
 
 
+def shared_battery():
+    runtime_dir = Path(
+        os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    )
+    state_dir = runtime_dir / "blousy-desktop-shared"
+    state_file = state_dir / "lamzu-battery.json"
+    lock_file = state_dir / "lamzu-battery.lock"
+
+    state_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    state_dir.chmod(0o700)
+
+    def cached(max_age):
+        try:
+            value = json.loads(state_file.read_text())
+            updated = float(value.pop("updated"))
+            if time.time() - updated <= max_age:
+                return value
+        except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError):
+            pass
+        return None
+
+    with lock_file.open("a+") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+
+        result = cached(CACHE_FRESH_SECONDS)
+        if result is not None:
+            return result
+
+        try:
+            result = read_battery(discover_hidraw())
+        except Exception as exc:
+            result = cached(CACHE_FALLBACK_SECONDS)
+            return result if result is not None else unavailable(exc)
+
+        payload = {**result, "updated": time.time()}
+        temporary = state_file.with_name(f"{state_file.name}.{os.getpid()}.tmp")
+        temporary.write_text(json.dumps(payload, separators=(",", ":")))
+        temporary.chmod(0o600)
+        temporary.replace(state_file)
+        return result
+
+
 def main():
-    try:
-        result = read_battery(discover_hidraw())
-    except Exception as exc:
-        result = unavailable(exc)
+    result = shared_battery()
 
     if os.environ.get("LAMZU_BATTERY_PLAIN") == "1":
         if result["available"]:

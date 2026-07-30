@@ -345,7 +345,7 @@ Scope {
     }
 
     CommandPoll {
-        interval: 120000
+        interval: 5000
         command: [root.helperDir + "/get-lamzu-battery.py"]
 
         onUpdated: text => {
