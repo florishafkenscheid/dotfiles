@@ -118,6 +118,8 @@ binds {
 
     Mod+Left { focus-column-or-monitor-left; }
     Mod+Right { focus-column-or-monitor-right; }
+    Mod+Ctrl+Left { focus-monitor-left; }
+    Mod+Ctrl+Right { focus-monitor-right; }
     Mod+Up { focus-window-up; }
     Mod+Down { focus-window-down; }
 
