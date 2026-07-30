@@ -18,6 +18,7 @@ Scope {
     property int memoryPercent: 0
     property double previousCpuTotal: 0
     property double previousCpuIdle: 0
+    property var outputs: ({})
     property var workspaces: []
     property var windows: []
     property var mediaData: ({
@@ -115,6 +116,7 @@ Scope {
 
             return {
                 "window": window,
+                "output": outputName,
                 "columnStart": index > 0 && (
                     !position || !previousPosition || position[0] !== previousPosition[0]
                 ),
@@ -122,6 +124,26 @@ Scope {
                 "activeColumn": position && position[0] === activeColumn
             };
         });
+    }
+
+    function combinedWindows() {
+        const outputNames = Object.keys(root.outputs).sort((left, right) => {
+            const leftLogical = root.outputs[left].logical || {};
+            const rightLogical = root.outputs[right].logical || {};
+            return (leftLogical.x || 0) - (rightLogical.x || 0)
+                || (leftLogical.y || 0) - (rightLogical.y || 0)
+                || left.localeCompare(right);
+        });
+
+        let combined = [];
+        outputNames.forEach(outputName => {
+            const outputWindows = root.windowsForOutput(outputName);
+            outputWindows.forEach((entry, index) => {
+                entry.outputStart = combined.length > 0 && index === 0;
+                combined.push(entry);
+            });
+        });
+        return combined;
     }
 
     function changeVolume(action, value): void {
@@ -214,6 +236,18 @@ Scope {
     }
 
     CommandPoll {
+        interval: 2000
+        enabled: root.isNiri
+        command: ["niri", "msg", "-j", "outputs"]
+
+        onUpdated: text => {
+            const value = root.parseJson(text, null);
+            if (value && typeof value === "object")
+                root.outputs = value;
+        }
+    }
+
+    CommandPoll {
         interval: 750
         enabled: root.isNiri
         command: ["niri", "msg", "-j", "workspaces"]
@@ -281,7 +315,8 @@ Scope {
             id: panel
 
             required property var modelData
-            readonly property var outputWindows: root.windowsForOutput(modelData.name)
+            readonly property var outputWindows:
+                root.isNiri ? root.combinedWindows() : []
             readonly property var hyprMonitor:
                 root.isHyprland ? Hyprland.monitorFor(modelData) : null
             readonly property var hyprWorkspace:
@@ -413,7 +448,9 @@ Scope {
 
                             required property var modelData
 
-                            width: 52 + (modelData.columnStart ? 12 : 0)
+                            width: 52
+                                + (modelData.columnStart ? 12 : 0)
+                                + (modelData.outputStart ? 20 : 0)
                             height: 58
 
                             Behavior on x {
@@ -424,6 +461,15 @@ Scope {
                             }
 
                             Rectangle {
+                                anchors.left: parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 1
+                                height: 34
+                                visible: modelData.outputStart
+                                color: root.theme.divider
+                            }
+
+                            Rectangle {
                                 id: windowSurface
 
                                 anchors.right: parent.right
@@ -431,10 +477,12 @@ Scope {
                                 width: 52
                                 height: 52
                                 radius: 10
-                                color: modelData.activeWindow
+                                color: modelData.window.is_focused
                                     ? root.theme.accentMuted
-                                    : windowMouse.containsMouse
-                                        ? root.theme.surfaceHover : "transparent"
+                                    : modelData.activeWindow
+                                        ? root.theme.surfaceHover
+                                        : windowMouse.containsMouse
+                                            ? root.theme.surfaceHover : "transparent"
                                 border.width: modelData.activeColumn ? 2 : 0
                                 border.color: modelData.activeColumn
                                     ? root.theme.accent : "transparent"
@@ -461,7 +509,7 @@ Scope {
                                     sourceSize.height: 30
                                     fillMode: Image.PreserveAspectFit
                                     opacity: modelData.activeColumn ? 1 : 0.72
-                                    scale: modelData.activeWindow ? 1.08 : 1
+                                    scale: modelData.window.is_focused ? 1.08 : 1
 
                                     Behavior on opacity {
                                         NumberAnimation { duration: 150 }

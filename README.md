@@ -44,6 +44,15 @@ out of one desktop returns that VT to tuigreet instead of immediately logging
 it back in. Portal behavior, application singletons, and hardware acceleration
 across an inactive VT should be checked after the first reboot.
 
+Niri still owns an independent workspace stack per output, but its navigation
+is arranged to feel like one wide desktop. `Mod+Left/Right` crosses the monitor
+edge after the last/first column, while `Mod+Shift+Left/Right` moves a column
+across that edge. `Mod+1..0` and `Mod+PageUp/PageDown` select the same workspace
+index on both monitors; adding `Shift` moves the focused column and keeps both
+outputs aligned. Quickshell repeats one physically ordered window strip on both
+bars, with a divider at the output boundary and a stronger highlight on the
+window that owns keyboard focus.
+
 Both sessions explicitly inherit the same `CODEX_HOME` (normally
 `~/.codex`). Codex user configuration, profiles, skills, authentication, and
 resumable session state therefore stay in sync automatically. That live,
