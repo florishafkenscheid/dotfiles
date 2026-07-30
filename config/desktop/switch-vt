@@ -24,32 +24,6 @@ desktop_label() {
     esac
 }
 
-choose_target() {
-    if ! command -v rofi >/dev/null 2>&1; then
-        notify "Cannot open desktop switcher" "rofi is not installed."
-        return 1
-    fi
-
-    if [ "$current" = "hyprland" ]; then
-        choices="󱘎  Niri · development
-󰖯  Stay in Hyprland · gaming
-Cancel"
-    else
-        choices="󰖯  Hyprland · gaming
-󱘎  Stay in Niri · development
-Cancel"
-    fi
-
-    selection="$(printf '%s\n' "$choices" |
-        rofi -dmenu -i -p "Switch desktop" -no-custom)"
-
-    case "$selection" in
-        *Niri*) printf '%s\n' "niri" ;;
-        *Hyprland*) printf '%s\n' "hyprland" ;;
-        *) return 1 ;;
-    esac
-}
-
 case "$current" in
     hyprland | niri) ;;
     *)
@@ -58,8 +32,13 @@ case "$current" in
         ;;
 esac
 
-case "${1:-menu}" in
-    menu) target="$(choose_target)" || exit 0 ;;
+case "${1:-toggle}" in
+    toggle)
+        case "$current" in
+            hyprland) target="niri" ;;
+            niri) target="hyprland" ;;
+        esac
+        ;;
     hyprland | niri) target="$1" ;;
     *)
         notify "Cannot switch desktop" "Unknown target: $1"
