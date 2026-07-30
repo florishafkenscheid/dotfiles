@@ -1,0 +1,95 @@
+#!/bin/sh
+
+# Vesktop's Electron data directory is single-instance. If it is open on the
+# other persistent desktop, stop that process, wait for its singleton lock to
+# clear, then relaunch Vesktop on the desktop that invoked us.
+
+set -u
+
+vesktop_binary="/usr/lib/vesktop/vesktop"
+vesktop_launcher="/usr/bin/vesktop"
+singleton_lock="${HOME:-/home/blousy}/.config/vesktop/SingletonLock"
+current_desktop="${BLOUSY_DESKTOP:-}"
+
+notify() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send --app-name "Vesktop launcher" "$1" "$2"
+    else
+        printf '%s: %s\n' "$1" "$2" >&2
+    fi
+}
+
+process_environment() {
+    key="$1"
+    pid="$2"
+    tr '\0' '\n' <"/proc/${pid}/environ" 2>/dev/null |
+        sed -n "s/^${key}=//p" |
+        head -n 1
+}
+
+find_profile_owner() {
+    [ -L "$singleton_lock" ] || return 1
+
+    lock_target="$(readlink "$singleton_lock" 2>/dev/null || :)"
+    owner_pid="${lock_target##*-}"
+    case "$owner_pid" in
+        "" | *[!0-9]*) return 1 ;;
+    esac
+
+    [ -r "/proc/${owner_pid}/environ" ] || return 1
+    [ "$(ps -o uid= -p "$owner_pid" 2>/dev/null | tr -d ' ')" = "$(id -u)" ] ||
+        return 1
+
+    owner_executable="$(readlink -f "/proc/${owner_pid}/exe" 2>/dev/null || :)"
+    [ "$owner_executable" = "$vesktop_binary" ] || return 1
+
+    printf '%s\n' "$owner_pid"
+}
+
+if [ ! -x "$vesktop_binary" ] || [ ! -x "$vesktop_launcher" ]; then
+    notify "Vesktop is unavailable" "The Vesktop executable is not installed."
+    exit 127
+fi
+
+case "$current_desktop" in
+    hyprland | niri) ;;
+    *) exec "$vesktop_launcher" "$@" ;;
+esac
+
+owner_pid="$(find_profile_owner || :)"
+if [ -z "$owner_pid" ]; then
+    exec "$vesktop_launcher" "$@"
+fi
+
+owner_desktop="$(process_environment BLOUSY_DESKTOP "$owner_pid")"
+case "$owner_desktop" in
+    hyprland | niri) ;;
+    *) exec "$vesktop_launcher" "$@" ;;
+esac
+
+if [ "${BLOUSY_DESKTOP_MODE:-}" != "vt" ] ||
+    [ "$owner_desktop" = "$current_desktop" ]; then
+    exec "$vesktop_launcher" "$@"
+fi
+
+# Never escalate to SIGKILL. If Electron does not complete shutdown, preserve
+# its profile owner and report the failure instead of risking local app state.
+if ! kill -TERM "$owner_pid" 2>/dev/null; then
+    notify "Could not move Vesktop" \
+        "The existing Vesktop process could not be closed."
+    exit 1
+fi
+
+attempt=0
+while kill -0 "$owner_pid" 2>/dev/null && [ "$attempt" -lt 100 ]; do
+    sleep 0.1
+    attempt=$((attempt + 1))
+done
+
+if kill -0 "$owner_pid" 2>/dev/null; then
+    notify "Vesktop is still closing" \
+        "The existing process did not exit after 10 seconds; migration was cancelled."
+    exit 1
+fi
+
+exec "$vesktop_launcher" "$@"

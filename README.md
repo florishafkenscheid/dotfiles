@@ -38,6 +38,10 @@ the existing process to shut down, waits for the profile lock to be released,
 and relaunches Zen on the invoking desktop. This preserves browser state without
 splitting the profile or switching VTs.
 
+Vesktop follows the same pattern for its shared Electron data directory.
+Launching it from the other desktop closes the existing instance and relaunches
+it on the invoking VT. The desktop entry retains the existing Mullvad exclusion.
+
 Autologin means anyone with physical access after boot can use both unlocked
 desktops. Greetd runs each initial session once per boot; deliberately logging
 out of one desktop returns that VT to tuigreet instead of immediately logging

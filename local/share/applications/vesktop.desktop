@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Vesktop
+Comment=Open Vesktop on the current persistent desktop
+Exec=/usr/bin/mullvad-exclude /home/blousy/.config/desktop/launch-vesktop %U
+Terminal=false
+Type=Application
+Icon=vesktop
+StartupWMClass=vesktop
+GenericName=Internet Messenger
+Categories=Network;
+Keywords=discord;vencord;electron;chat;
+MimeType=x-scheme-handler/discord;
