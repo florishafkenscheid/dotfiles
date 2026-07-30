@@ -81,7 +81,7 @@ screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 // Quickshell owns both the panel and wallpaper; the other helpers are
 // deliberately session-local.
-spawn-at-startup "qs" "-c" "blousy"
+spawn-at-startup "env" "-u" "HYPRLAND_INSTANCE_SIGNATURE" "BLOUSY_DESKTOP=niri" "qs" "-c" "blousy"
 spawn-at-startup "mako"
 spawn-at-startup "clipse" "-listen"
 spawn-at-startup "/usr/lib/hyprpolkitagent/hyprpolkitagent"

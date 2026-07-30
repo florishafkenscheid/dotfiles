@@ -8,9 +8,16 @@ Scope {
 
     required property var theme
 
+    readonly property string currentDesktop:
+        Quickshell.env("XDG_CURRENT_DESKTOP").toLowerCase()
     readonly property bool isHyprland:
-        Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") !== ""
-    readonly property bool isNiri: Quickshell.env("NIRI_SOCKET") !== ""
+        currentDesktop.includes("hyprland")
+        || (!currentDesktop.includes("niri")
+            && Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") !== "")
+    readonly property bool isNiri:
+        !isHyprland
+        && (currentDesktop.includes("niri")
+            || Quickshell.env("NIRI_SOCKET") !== "")
     readonly property string helperDir:
         Quickshell.env("HOME") + "/.config/quickshell/blousy/scripts"
     property int cpuPercent: 0
@@ -21,6 +28,9 @@ Scope {
     property var outputs: ({})
     property var workspaces: []
     property var windows: []
+    property var hyprClients: []
+    property bool hyprClientsReady: false
+    property int hyprEmptyClientPolls: 0
     property var mediaData: ({
         "title": "Nothing Playing",
         "artist": ""
@@ -57,25 +67,46 @@ Scope {
             niriAction.exec(["niri", "msg", "action", "focus-window", "--id", String(id)]);
     }
 
-    function focusHyprWindow(toplevel): void {
-        if (!toplevel)
-            return;
-
-        if (toplevel.wayland) {
-            toplevel.wayland.activate();
-        } else if (toplevel.address) {
-            Hyprland.dispatch("focuswindow address:" + toplevel.address);
-        }
-    }
-
     function hyprAppId(toplevel) {
         if (!toplevel)
             return "";
+
+        if (toplevel.initialClass || toplevel.class)
+            return toplevel.initialClass || toplevel.class;
 
         const details = toplevel.lastIpcObject || {};
         if (details.initialClass || details.class)
             return details.initialClass || details.class;
         return toplevel.wayland ? toplevel.wayland.appId : "";
+    }
+
+    function hyprWorkspaceApps(workspace) {
+        if (!workspace || !workspace.toplevels)
+            return [];
+
+        const apps = [];
+        const seen = {};
+        const workspaceClients = root.hyprClients.filter(client =>
+            client.workspace
+            && client.workspace.id === workspace.id
+            && client.mapped !== false
+        );
+        const toplevels = root.hyprClientsReady
+            ? workspaceClients : workspace.toplevels.values;
+
+        for (let i = 0; i < toplevels.length && apps.length < 3; ++i) {
+            const toplevel = toplevels[i];
+            const appId = root.hyprAppId(toplevel);
+            const key = (appId || toplevel.address || String(i)).toLowerCase();
+
+            if (seen[key])
+                continue;
+
+            seen[key] = true;
+            apps.push(toplevel);
+        }
+
+        return apps;
     }
 
     function windowIcon(appId) {
@@ -272,6 +303,30 @@ Scope {
     }
 
     CommandPoll {
+        interval: 1500
+        enabled: root.isHyprland
+        command: ["hyprctl", "-j", "clients"]
+
+        onUpdated: text => {
+            const value = root.parseJson(text, null);
+            if (!Array.isArray(value))
+                return;
+
+            if (value.length === 0) {
+                root.hyprEmptyClientPolls++;
+                if (root.hyprEmptyClientPolls >= 2) {
+                    root.hyprClients = [];
+                    root.hyprClientsReady = true;
+                }
+            } else {
+                root.hyprEmptyClientPolls = 0;
+                root.hyprClients = value;
+                root.hyprClientsReady = true;
+            }
+        }
+    }
+
+    CommandPoll {
         command: [root.helperDir + "/get-now-playing.sh"]
 
         onUpdated: text => {
@@ -319,8 +374,16 @@ Scope {
                 root.isNiri ? root.combinedWindows() : []
             readonly property var hyprMonitor:
                 root.isHyprland ? Hyprland.monitorFor(modelData) : null
-            readonly property var hyprWorkspace:
-                hyprMonitor ? hyprMonitor.activeWorkspace : null
+            readonly property var hyprWorkspaces:
+                root.isHyprland && hyprMonitor
+                    ? Hyprland.workspaces.values
+                        .filter(workspace =>
+                            workspace.id > 0
+                            && workspace.monitor
+                            && workspace.monitor.name === hyprMonitor.name
+                        )
+                        .sort((left, right) => left.id - right.id)
+                    : []
 
             screen: modelData
             color: "transparent"
@@ -547,76 +610,105 @@ Scope {
                     }
 
                     Repeater {
-                        model: root.isHyprland && panel.hyprWorkspace
-                            ? panel.hyprWorkspace.toplevels : 0
+                        model: root.isHyprland ? panel.hyprWorkspaces : []
 
                         delegate: Item {
+                            id: hyprWorkspaceItem
+
                             required property var modelData
 
-                            width: 52
+                            width: hyprWorkspaceContent.implicitWidth + 24
                             height: 58
 
                             Rectangle {
-                                anchors.centerIn: parent
-                                width: 52
-                                height: 52
-                                radius: 10
-                                color: modelData.activated
-                                    ? root.theme.accentMuted
-                                    : hyprWindowMouse.containsMouse
+                                anchors.fill: parent
+                                anchors.topMargin: 3
+                                anchors.bottomMargin: 9
+                                radius: 9
+                                color: modelData.active
+                                    ? root.theme.accentSoft
+                                    : hyprWorkspaceMouse.containsMouse
                                         ? root.theme.surfaceHover : "transparent"
-                                border.width: modelData.activated ? 2 : 0
-                                border.color: modelData.activated
-                                    ? root.theme.accent : "transparent"
 
                                 Behavior on color {
                                     ColorAnimation { duration: 160 }
                                 }
+                            }
 
-                                Image {
-                                    id: hyprAppIcon
+                            Rectangle {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.bottom: parent.bottom
+                                width: parent.width - 12
+                                height: 2
+                                color: modelData.active
+                                    ? root.theme.accent : "transparent"
+                            }
 
-                                    anchors.centerIn: parent
-                                    width: 30
-                                    height: 30
-                                    source: root.windowIcon(root.hyprAppId(modelData))
-                                    sourceSize.width: 30
-                                    sourceSize.height: 30
-                                    fillMode: Image.PreserveAspectFit
-                                    opacity: modelData.activated ? 1 : 0.72
-                                    scale: modelData.activated ? 1.08 : 1
+                            Row {
+                                id: hyprWorkspaceContent
 
-                                    Behavior on opacity {
-                                        NumberAnimation { duration: 150 }
-                                    }
-
-                                    Behavior on scale {
-                                        NumberAnimation {
-                                            duration: 180
-                                            easing.type: Easing.OutBack
-                                        }
-                                    }
-                                }
+                                anchors.centerIn: parent
+                                spacing: 7
 
                                 Text {
-                                    anchors.centerIn: parent
-                                    text: "󰣆"
-                                    color: modelData.activated
-                                        ? root.theme.accent : root.theme.foregroundMuted
-                                    visible: hyprAppIcon.status === Image.Error
-                                        || hyprAppIcon.status === Image.Null
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: modelData.name
+                                    color: modelData.active
+                                        ? root.theme.accent
+                                        : root.theme.foregroundMuted
                                     font.family: root.theme.fontFamily
-                                    font.pixelSize: 28
+                                    font.pixelSize: 22
+                                }
+
+                                Repeater {
+                                    model: root.hyprWorkspaceApps(modelData)
+
+                                    delegate: Item {
+                                        required property var modelData
+
+                                        width: 28
+                                        height: 32
+
+                                        Image {
+                                            id: hyprWorkspaceAppIcon
+
+                                            anchors.centerIn: parent
+                                            width: 26
+                                            height: 26
+                                            source: root.windowIcon(
+                                                root.hyprAppId(modelData)
+                                            )
+                                            sourceSize.width: 26
+                                            sourceSize.height: 26
+                                            fillMode: Image.PreserveAspectFit
+                                            opacity: modelData.activated ? 1 : 0.72
+                                        }
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: "󰣆"
+                                            color: modelData.activated
+                                                ? root.theme.accent
+                                                : root.theme.foregroundMuted
+                                            visible:
+                                                hyprWorkspaceAppIcon.status
+                                                    === Image.Error
+                                                || hyprWorkspaceAppIcon.status
+                                                    === Image.Null
+                                            font.family: root.theme.fontFamily
+                                            font.pixelSize: 22
+                                        }
+                                    }
                                 }
                             }
 
                             MouseArea {
-                                id: hyprWindowMouse
+                                id: hyprWorkspaceMouse
 
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.focusHyprWindow(modelData)
+                                onClicked: modelData.activate()
                             }
                         }
                     }
@@ -651,7 +743,8 @@ Scope {
                                 color: mediaContainer.hasMedia
                                     ? root.theme.foreground
                                     : root.theme.foregroundMuted
-                                elide: Text.ElideRight
+                                horizontalAlignment: Text.AlignRight
+                                elide: Text.ElideLeft
                                 font.family: root.theme.fontFamily
                                 font.pixelSize: 20
 
@@ -664,7 +757,8 @@ Scope {
                                 width: parent.width
                                 text: root.mediaData.artist
                                 color: root.theme.foregroundMuted
-                                elide: Text.ElideRight
+                                horizontalAlignment: Text.AlignRight
+                                elide: Text.ElideLeft
                                 visible: text.length > 0
                                 font.family: root.theme.fontFamily
                                 font.pixelSize: 16
@@ -781,7 +875,7 @@ Scope {
                     }
 
                     Item {
-                        width: volumeRow.implicitWidth + 20
+                        width: 126
                         height: 54
 
                         Rectangle {
