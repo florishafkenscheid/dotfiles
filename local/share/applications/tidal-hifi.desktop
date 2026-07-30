@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=TIDAL Hi-Fi
+GenericName=Music Streaming Service
+Icon=tidal-hifi
+Comment=Open TIDAL on the current persistent desktop
+Exec=/home/blousy/.config/desktop/launch-tidal %u
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=Audio;Video;AudioVideo;
+StartupWMClass=tidal-hifi
+X-PulseAudio-Properties=media.role=music
+MimeType=x-scheme-handler/tidal;

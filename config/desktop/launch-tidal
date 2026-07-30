@@ -1,0 +1,101 @@
+#!/bin/sh
+
+# TIDAL Hi-Fi's Electron data directory is single-instance. If it is open on
+# the other persistent desktop, stop that process, wait for it to release its
+# profile, then relaunch TIDAL on the desktop that invoked us.
+
+set -u
+
+tidal_binary="/opt/tidal-hifi/tidal-hifi"
+tidal_launcher="/usr/bin/tidal-hifi"
+current_desktop="${BLOUSY_DESKTOP:-}"
+
+notify() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send --app-name "TIDAL launcher" "$1" "$2"
+    else
+        printf '%s: %s\n' "$1" "$2" >&2
+    fi
+}
+
+process_environment() {
+    key="$1"
+    pid="$2"
+    tr '\0' '\n' <"/proc/${pid}/environ" 2>/dev/null |
+        sed -n "s/^${key}=//p" |
+        head -n 1
+}
+
+find_profile_owner() {
+    for process_dir in /proc/[0-9]*; do
+        owner_pid="${process_dir##*/}"
+
+        [ -r "${process_dir}/environ" ] || continue
+        [ "$(ps -o uid= -p "$owner_pid" 2>/dev/null | tr -d ' ')" = "$(id -u)" ] ||
+            continue
+
+        owner_executable="$(readlink -f "${process_dir}/exe" 2>/dev/null || :)"
+        [ "$owner_executable" = "$tidal_binary" ] || continue
+
+        command_line="$(tr '\0' ' ' <"${process_dir}/cmdline" 2>/dev/null || :)"
+        case "$command_line" in
+            *"--type="*) continue ;;
+        esac
+
+        printf '%s\n' "$owner_pid"
+        return 0
+    done
+
+    return 1
+}
+
+launch_tidal() {
+    exec "$tidal_launcher" --no-zygote --no-sandbox "$@"
+}
+
+if [ ! -x "$tidal_binary" ] || [ ! -x "$tidal_launcher" ]; then
+    notify "TIDAL is unavailable" "The TIDAL Hi-Fi executable is not installed."
+    exit 127
+fi
+
+case "$current_desktop" in
+    hyprland | niri) ;;
+    *) launch_tidal "$@" ;;
+esac
+
+owner_pid="$(find_profile_owner || :)"
+if [ -z "$owner_pid" ]; then
+    launch_tidal "$@"
+fi
+
+owner_desktop="$(process_environment BLOUSY_DESKTOP "$owner_pid")"
+case "$owner_desktop" in
+    hyprland | niri) ;;
+    *) launch_tidal "$@" ;;
+esac
+
+if [ "${BLOUSY_DESKTOP_MODE:-}" != "vt" ] ||
+    [ "$owner_desktop" = "$current_desktop" ]; then
+    launch_tidal "$@"
+fi
+
+# Never escalate to SIGKILL. If Electron does not complete shutdown, preserve
+# its profile owner and report the failure instead of risking local app state.
+if ! kill -TERM "$owner_pid" 2>/dev/null; then
+    notify "Could not move TIDAL" "The existing TIDAL process could not be closed."
+    exit 1
+fi
+
+attempt=0
+while kill -0 "$owner_pid" 2>/dev/null && [ "$attempt" -lt 100 ]; do
+    sleep 0.1
+    attempt=$((attempt + 1))
+done
+
+if kill -0 "$owner_pid" 2>/dev/null; then
+    notify "TIDAL is still closing" \
+        "The existing process did not exit after 10 seconds; migration was cancelled."
+    exit 1
+fi
+
+launch_tidal "$@"
