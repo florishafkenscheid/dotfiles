@@ -35,6 +35,7 @@ Scope {
         "processes": {},
         "versions": {}
     })
+    property var steamIconData: ({})
     property var mediaData: ({
         "title": "Nothing Playing",
         "artist": ""
@@ -132,7 +133,14 @@ Scope {
         }
 
         const entry = DesktopEntries.heuristicLookup(appId || "");
-        return entry && entry.icon ? Quickshell.iconPath(entry.icon, true) : "";
+        if (entry && entry.icon)
+            return Quickshell.iconPath(entry.icon, true);
+
+        const steamIcon = root.steamIconData[String(pid || "")];
+        if (steamIcon)
+            return Quickshell.iconPath(steamIcon, true);
+
+        return appId ? Quickshell.iconPath(appId, true) : "";
     }
 
     function windowsForOutput(outputName) {
@@ -382,6 +390,18 @@ Scope {
             const value = root.parseJson(text, null);
             if (value && typeof value === "object")
                 root.prismIconData = value;
+        }
+    }
+
+    CommandPoll {
+        interval: 2000
+        // Steam exports the authoritative app ID into each game process.
+        command: [root.helperDir + "/get-steam-app-icons.py"]
+
+        onUpdated: text => {
+            const value = root.parseJson(text, null);
+            if (value && typeof value === "object")
+                root.steamIconData = value;
         }
     }
 
