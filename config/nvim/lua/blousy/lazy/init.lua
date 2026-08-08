@@ -11,6 +11,7 @@ return {
 	require("blousy.lualine"),
 	require("blousy.web-devicons"),
 	require("blousy.virt-column"),
+	require("blousy.markdown"),
 	-- require("blousy.lush"),
 
 	-- File Browsing & Navigation

@@ -11,6 +11,8 @@ return {
             "cpp",
             "rust",
             "go",
+            "markdown",
+            "markdown_inline",
         }
 
         treesitter.setup({
