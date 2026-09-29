@@ -1,7 +1,6 @@
 [Desktop Entry]
 Name=Vesktop
-Comment=Open Vesktop on the current persistent desktop
-Exec=/usr/bin/mullvad-exclude /home/blousy/.config/desktop/launch-vesktop %U
+Exec=/usr/bin/mullvad-exclude /usr/bin/vesktop %U
 Terminal=false
 Type=Application
 Icon=vesktop

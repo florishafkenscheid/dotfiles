@@ -2,8 +2,7 @@
 Name=TIDAL Hi-Fi
 GenericName=Music Streaming Service
 Icon=tidal-hifi
-Comment=Open TIDAL on the current persistent desktop
-Exec=/home/blousy/.config/desktop/launch-tidal %u
+Exec=/usr/bin/tidal-hifi --no-zygote --no-sandbox %u
 StartupNotify=true
 Terminal=false
 Type=Application
