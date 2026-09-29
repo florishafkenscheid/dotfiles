@@ -12,7 +12,7 @@ if [[ "$ACTIVE_CLASS" =~ ^(cs2)$ ]] || [[ "$ACTIVE_TITLE" == "Counter-Strike 2" 
 fi
 
 if [[ "$ACTIVE_CLASS" =~ ^(vesktop|discord)$ ]]; then
-	hyprctl dispatch movetoworkspacesilent special:hidden
+	hyprctl dispatch 'hl.dsp.window.move({ workspace = "special:hidden", follow = false })'
 else
-	hyprctl dispatch killactive
+	hyprctl dispatch 'hl.dsp.window.close()'
 fi

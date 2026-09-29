@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# Persist a selected desktop theme and expose the small native fragment that
-# niri cannot consume directly from Quickshell's JSON catalog.
+# Persist a selected desktop theme and generate native application fragments.
 
 set -eu
 
@@ -10,8 +9,7 @@ state_home="${XDG_STATE_HOME:-/home/blousy/.local/state}"
 catalog="${config_home}/desktop/themes/catalog.json"
 state_dir="${state_home}/blousy"
 current_file="${state_dir}/theme"
-niri_file="${state_dir}/niri-theme.kdl"
-hypr_file="${state_dir}/hypr-theme.conf"
+hypr_file="${state_dir}/hypr-theme.lua"
 fastfetch_link="${state_dir}/fastfetch-image.png"
 fastfetch_file="${state_dir}/fastfetch.jsonc"
 neovim_file="${state_dir}/nvim-colorscheme"
@@ -106,7 +104,7 @@ case "${1:-}" in
         background_opaque="$(catalog_value '.palette.backgroundOpaque' "$theme_id")"
         foreground_opaque="$(catalog_value '.palette.foregroundOpaque' "$theme_id")"
         secondary="$(catalog_value '.palette.secondary' "$theme_id")"
-        inactive="$(catalog_value '.palette.niriInactive' "$theme_id")"
+        inactive_border="$(catalog_value '.palette.inactiveBorder' "$theme_id")"
         wallpaper="$(resolve_asset "$wallpaper_rel")"
         fastfetch_image="$(resolve_asset "$fastfetch_rel")"
 
@@ -147,8 +145,7 @@ case "${1:-}" in
         mkdir -p "$state_dir"
         temporary_dir="$(mktemp -d "${state_dir}/theme.XXXXXX")"
         current_tmp="${temporary_dir}/theme"
-        niri_tmp="${temporary_dir}/niri-theme.kdl"
-        hypr_tmp="${temporary_dir}/hypr-theme.conf"
+        hypr_tmp="${temporary_dir}/hypr-theme.lua"
         fastfetch_link_tmp="${temporary_dir}/fastfetch-image.png"
         fastfetch_tmp="${temporary_dir}/fastfetch.jsonc"
         neovim_tmp="${temporary_dir}/nvim-colorscheme"
@@ -158,7 +155,7 @@ case "${1:-}" in
         zen_tmp="${temporary_dir}/zen-theme.css"
 
         cleanup() {
-            rm -f "$current_tmp" "$niri_tmp" "$hypr_tmp" \
+            rm -f "$current_tmp" "$hypr_tmp" \
                 "$fastfetch_link_tmp" \
                 "$fastfetch_tmp" "$neovim_tmp" "$starship_tmp" \
                 "$mako_tmp" "$rofi_tmp" "$zen_tmp"
@@ -170,20 +167,19 @@ case "${1:-}" in
         printf '%s\n' "$neovim_colorscheme" >"$neovim_tmp"
         ln -s "$fastfetch_image" "$fastfetch_link_tmp"
         {
-            printf 'layout {\n'
-            printf '    border {\n'
-            printf '        active-color "%s"\n' "$accent"
-            printf '        inactive-color "%s"\n' "$inactive"
-            printf '    }\n'
-            printf '}\n'
-        } >"$niri_tmp"
-        {
-            printf 'general {\n'
-            printf '    col.active_border = rgb(%s) rgb(%s) 35deg\n' \
+            printf 'hl.config({\n'
+            printf '    general = {\n'
+            printf '        col = {\n'
+            printf '            active_border = {\n'
+            printf '                colors = { "rgb(%s)", "rgb(%s)" },\n' \
                 "${accent#\#}" "${accent_bright#\#}"
-            printf '    col.inactive_border = rgba(%s77)\n' \
-                "${inactive#\#}"
-            printf '}\n'
+            printf '                angle = 35,\n'
+            printf '            },\n'
+            printf '            inactive_border = "rgba(%s77)",\n' \
+                "${inactive_border#\#}"
+            printf '        },\n'
+            printf '    },\n'
+            printf '})\n'
         } >"$hypr_tmp"
         awk \
             -v image="$fastfetch_image" \
@@ -291,13 +287,6 @@ case "${1:-}" in
             printf '}\n'
         } >"$zen_tmp"
 
-        # Freeze first so Quickshell and niri can redraw as one visual change.
-        if [ -n "${NIRI_SOCKET:-}" ]; then
-            niri msg action do-screen-transition --delay-ms 180 \
-                >/dev/null 2>&1 || true
-        fi
-
-        mv -f "$niri_tmp" "$niri_file"
         mv -f "$hypr_tmp" "$hypr_file"
         mv -fT "$fastfetch_link_tmp" "$fastfetch_link"
         mv -f "$fastfetch_tmp" "$fastfetch_file"
@@ -311,9 +300,6 @@ case "${1:-}" in
         trap - EXIT HUP INT TERM
 
         rm -f "$legacy_zen_file"
-        if [ -n "${NIRI_SOCKET:-}" ]; then
-            niri msg action load-config-file >/dev/null 2>&1 || true
-        fi
         if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
             hyprctl reload >/dev/null 2>&1 || true
         fi

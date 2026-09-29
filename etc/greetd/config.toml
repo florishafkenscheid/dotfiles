@@ -2,13 +2,10 @@
 vt = 1
 switch = true
 
-[general]
-runfile = "/run/greetd-hyprland.run"
-
 [default_session]
-command = "/usr/bin/env PATH=/home/blousy/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin tuigreet --cmd 'desktop-vt-session hyprland' --time"
+command = "/usr/bin/env PATH=/home/blousy/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin tuigreet --cmd start-hyprland-quietly --time"
 user = "blousy"
 
 [initial_session]
-command = "/usr/bin/env PATH=/home/blousy/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin desktop-vt-session hyprland"
+command = "/usr/bin/env PATH=/home/blousy/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin start-hyprland-quietly"
 user = "blousy"
