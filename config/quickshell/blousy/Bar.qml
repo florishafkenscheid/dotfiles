@@ -8,16 +8,6 @@ Scope {
 
     required property var theme
 
-    readonly property string currentDesktop:
-        Quickshell.env("XDG_CURRENT_DESKTOP").toLowerCase()
-    readonly property bool isHyprland:
-        currentDesktop.includes("hyprland")
-        || (!currentDesktop.includes("niri")
-            && Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") !== "")
-    readonly property bool isNiri:
-        !isHyprland
-        && (currentDesktop.includes("niri")
-            || Quickshell.env("NIRI_SOCKET") !== "")
     readonly property string helperDir:
         Quickshell.env("HOME") + "/.config/quickshell/blousy/scripts"
     property int cpuPercent: 0
@@ -25,9 +15,6 @@ Scope {
     property int memoryPercent: 0
     property double previousCpuTotal: 0
     property double previousCpuIdle: 0
-    property var outputs: ({})
-    property var workspaces: []
-    property var windows: []
     property var hyprClients: []
     property bool hyprClientsReady: false
     property int hyprEmptyClientPolls: 0
@@ -62,14 +49,14 @@ Scope {
         }
     }
 
-    function switchDesktop(): void {
-        if (!switchProcess.running)
-            switchProcess.running = true;
-    }
-
-    function focusNiriWindow(id): void {
-        if (!niriAction.running)
-            niriAction.exec(["niri", "msg", "action", "focus-window", "--id", String(id)]);
+    function focusHyprWorkspace(id): void {
+        if (!hyprAction.running) {
+            hyprAction.exec([
+                "hyprctl",
+                "dispatch",
+                "hl.dsp.focus({ workspace = " + String(id) + " })"
+            ]);
+        }
     }
 
     function hyprAppId(toplevel) {
@@ -143,69 +130,6 @@ Scope {
         return appId ? Quickshell.iconPath(appId, true) : "";
     }
 
-    function windowsForOutput(outputName) {
-        const workspace = root.workspaces.find(candidate =>
-            candidate.output === outputName && candidate.is_active
-        );
-        if (!workspace)
-            return [];
-
-        const ordered = root.windows
-            .filter(window => window.workspace_id === workspace.id)
-            .sort((left, right) => {
-                const leftPosition = left.layout && left.layout.pos_in_scrolling_layout
-                    ? left.layout.pos_in_scrolling_layout : [9999, left.id];
-                const rightPosition = right.layout && right.layout.pos_in_scrolling_layout
-                    ? right.layout.pos_in_scrolling_layout : [9999, right.id];
-                return leftPosition[0] - rightPosition[0]
-                    || leftPosition[1] - rightPosition[1]
-                    || left.id - right.id;
-            });
-
-        const activeWindow = ordered.find(window => window.id === workspace.active_window_id);
-        const activePosition = activeWindow && activeWindow.layout
-            ? activeWindow.layout.pos_in_scrolling_layout : null;
-        const activeColumn = activePosition ? activePosition[0] : -1;
-
-        return ordered.map((window, index) => {
-            const position = window.layout && window.layout.pos_in_scrolling_layout
-                ? window.layout.pos_in_scrolling_layout : null;
-            const previous = index > 0 ? ordered[index - 1] : null;
-            const previousPosition = previous && previous.layout
-                ? previous.layout.pos_in_scrolling_layout : null;
-
-            return {
-                "window": window,
-                "output": outputName,
-                "columnStart": index > 0 && (
-                    !position || !previousPosition || position[0] !== previousPosition[0]
-                ),
-                "activeWindow": window.id === workspace.active_window_id,
-                "activeColumn": position && position[0] === activeColumn
-            };
-        });
-    }
-
-    function combinedWindows() {
-        const outputNames = Object.keys(root.outputs).sort((left, right) => {
-            const leftLogical = root.outputs[left].logical || {};
-            const rightLogical = root.outputs[right].logical || {};
-            return (leftLogical.x || 0) - (rightLogical.x || 0)
-                || (leftLogical.y || 0) - (rightLogical.y || 0)
-                || left.localeCompare(right);
-        });
-
-        let combined = [];
-        outputNames.forEach(outputName => {
-            const outputWindows = root.windowsForOutput(outputName);
-            outputWindows.forEach((entry, index) => {
-                entry.outputStart = combined.length > 0 && index === 0;
-                combined.push(entry);
-            });
-        });
-        return combined;
-    }
-
     function changeVolume(action, value): void {
         if (!volumeAction.running) {
             const command = [root.helperDir + "/set-volume.sh", action];
@@ -228,12 +152,7 @@ Scope {
     }
 
     Process {
-        id: switchProcess
-        command: ["/home/blousy/.config/desktop/switch"]
-    }
-
-    Process {
-        id: niriAction
+        id: hyprAction
     }
 
     Process {
@@ -296,44 +215,7 @@ Scope {
     }
 
     CommandPoll {
-        interval: 2000
-        enabled: root.isNiri
-        command: ["niri", "msg", "-j", "outputs"]
-
-        onUpdated: text => {
-            const value = root.parseJson(text, null);
-            if (value && typeof value === "object")
-                root.outputs = value;
-        }
-    }
-
-    CommandPoll {
-        interval: 750
-        enabled: root.isNiri
-        command: ["niri", "msg", "-j", "workspaces"]
-
-        onUpdated: text => {
-            const value = root.parseJson(text, null);
-            if (Array.isArray(value))
-                root.workspaces = value;
-        }
-    }
-
-    CommandPoll {
-        interval: 500
-        enabled: root.isNiri
-        command: ["niri", "msg", "-j", "windows"]
-
-        onUpdated: text => {
-            const value = root.parseJson(text, null);
-            if (Array.isArray(value))
-                root.windows = value;
-        }
-    }
-
-    CommandPoll {
         interval: 1500
-        enabled: root.isHyprland
         command: ["hyprctl", "-j", "clients"]
 
         onUpdated: text => {
@@ -422,12 +304,9 @@ Scope {
             id: panel
 
             required property var modelData
-            readonly property var outputWindows:
-                root.isNiri ? root.combinedWindows() : []
-            readonly property var hyprMonitor:
-                root.isHyprland ? Hyprland.monitorFor(modelData) : null
+            readonly property var hyprMonitor: Hyprland.monitorFor(modelData)
             readonly property var hyprWorkspaces:
-                root.isHyprland && hyprMonitor
+                hyprMonitor
                     ? Hyprland.workspaces.values
                         .filter(workspace =>
                             workspace.id > 0
@@ -477,43 +356,12 @@ Scope {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 20
 
-                    Item {
-                        width: 54
-                        height: 56
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 9
-                            color: logoMouse.containsMouse
-                                ? root.theme.surfaceHover : "transparent"
-
-                            Behavior on color {
-                                ColorAnimation { duration: 140 }
-                            }
-                        }
-
-                        Text {
-                            id: logo
-
-                            anchors.centerIn: parent
-                            text: ""
-                            color: logoMouse.containsMouse ? root.theme.foreground : root.theme.accent
-                            font.family: root.theme.fontFamily
-                            font.pixelSize: 38
-
-                            Behavior on color {
-                                ColorAnimation { duration: 140 }
-                            }
-                        }
-
-                        MouseArea {
-                            id: logoMouse
-
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.switchDesktop()
-                        }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: ""
+                        color: root.theme.accent
+                        font.family: root.theme.fontFamily
+                        font.pixelSize: 38
                     }
 
                     Text {
@@ -556,116 +404,7 @@ Scope {
                     spacing: 4
 
                     Repeater {
-                        model: root.isNiri ? panel.outputWindows : []
-
-                        delegate: Item {
-                            id: windowItem
-
-                            required property var modelData
-
-                            width: 52
-                                + (modelData.columnStart ? 12 : 0)
-                                + (modelData.outputStart ? 20 : 0)
-                            height: 58
-
-                            Behavior on x {
-                                NumberAnimation {
-                                    duration: 190
-                                    easing.type: Easing.OutCubic
-                                }
-                            }
-
-                            Rectangle {
-                                anchors.left: parent.left
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 1
-                                height: 34
-                                visible: modelData.outputStart
-                                color: root.theme.divider
-                            }
-
-                            Rectangle {
-                                id: windowSurface
-
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 52
-                                height: 52
-                                radius: 10
-                                color: modelData.window.is_focused
-                                    ? root.theme.accentMuted
-                                    : modelData.activeWindow
-                                        ? root.theme.surfaceHover
-                                        : windowMouse.containsMouse
-                                            ? root.theme.surfaceHover : "transparent"
-                                border.width: modelData.activeColumn ? 2 : 0
-                                border.color: modelData.activeColumn
-                                    ? root.theme.accent : "transparent"
-
-                                Behavior on color {
-                                    ColorAnimation { duration: 160 }
-                                }
-
-                                Behavior on border.width {
-                                    NumberAnimation {
-                                        duration: 160
-                                        easing.type: Easing.OutCubic
-                                    }
-                                }
-
-                                Image {
-                                    id: appIcon
-
-                                    anchors.centerIn: parent
-                                    width: 30
-                                    height: 30
-                                    source: root.windowIcon(
-                                        modelData.window.app_id,
-                                        modelData.window.pid
-                                    )
-                                    sourceSize.width: 30
-                                    sourceSize.height: 30
-                                    fillMode: Image.PreserveAspectFit
-                                    opacity: modelData.activeColumn ? 1 : 0.72
-                                    scale: modelData.window.is_focused ? 1.08 : 1
-
-                                    Behavior on opacity {
-                                        NumberAnimation { duration: 150 }
-                                    }
-
-                                    Behavior on scale {
-                                        NumberAnimation {
-                                            duration: 180
-                                            easing.type: Easing.OutBack
-                                        }
-                                    }
-                                }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "󰣆"
-                                    color: modelData.activeColumn
-                                        ? root.theme.accent : root.theme.foregroundMuted
-                                    visible: appIcon.status === Image.Error
-                                        || appIcon.status === Image.Null
-                                    font.family: root.theme.fontFamily
-                                    font.pixelSize: 28
-                                }
-                            }
-
-                            MouseArea {
-                                id: windowMouse
-
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: root.focusNiriWindow(modelData.window.id)
-                            }
-                        }
-                    }
-
-                    Repeater {
-                        model: root.isHyprland ? panel.hyprWorkspaces : []
+                        model: panel.hyprWorkspaces
 
                         delegate: Item {
                             id: hyprWorkspaceItem
@@ -764,7 +503,7 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: modelData.activate()
+                                onClicked: root.focusHyprWorkspace(modelData.id)
                             }
                         }
                     }

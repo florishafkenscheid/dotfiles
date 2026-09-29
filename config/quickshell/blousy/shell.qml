@@ -3,7 +3,6 @@
 import Quickshell
 
 ShellRoot {
-    // Shared by Niri and Hyprland; compositor-specific behavior lives in Bar.
     Theme {
         id: theme
     }
