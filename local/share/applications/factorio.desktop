@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Factorio
+Exec=/home/blousy/.local/bin/factorio
+Icon=/home/blousy/.factorio/data/core/graphics/factorio.png
+StartupWMClass=com.factorio.Factorio
+Terminal=false
+Categories=Game;
