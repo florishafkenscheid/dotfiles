@@ -18,6 +18,17 @@ Scope {
     property var hyprClients: []
     property bool hyprClientsReady: false
     property int hyprEmptyClientPolls: 0
+    property bool hyprClientsRefreshPending: false
+    property bool vpnListenerReady: false
+    readonly property bool needsPrismIcons: hyprClients.some(client =>
+        /^minecraft/i.test(hyprAppId(client))
+    )
+    // Steam game classes are arbitrary; only probe clients needing the fallback.
+    readonly property bool needsSteamIcons: hyprClients.some(client => {
+        const appId = hyprAppId(client);
+        const entry = DesktopEntries.heuristicLookup(appId);
+        return !/^minecraft/i.test(appId) && !(entry && entry.icon);
+    })
     property var prismIconData: ({
         "processes": {},
         "versions": {}
@@ -194,19 +205,35 @@ Scope {
 
     Process {
         id: vpnAction
-        onExited: vpnPoll.refresh()
+        onExited: { if (!root.vpnListenerReady) vpnPoll.refresh(); }
     }
 
-    CommandPoll {
-        command: ["sh", "-c", "awk '/^cpu / { total=0; for (i=2; i<=NF; i++) total+=$i; print total, $5+$6 }' /proc/stat"]
+    Timer {
+        interval: 2000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: {
+            cpuFile.reload();
+            memoryFile.reload();
+            gpuFile.reload();
+        }
+    }
 
-        onUpdated: text => {
-            const values = text.split(/\s+/).map(Number);
-            if (values.length < 2 || values.some(value => !Number.isFinite(value)))
+    FileView {
+        id: cpuFile
+        path: "/proc/stat"
+
+        onLoaded: {
+            const line = text().split("\n").find(line => /^cpu\s/.test(line));
+            if (!line)
+                return;
+            const values = line.trim().split(/\s+/).slice(1).map(Number);
+            if (values.length < 5 || values.some(value => !Number.isFinite(value)))
                 return;
 
-            const total = values[0];
-            const idle = values[1];
+            const total = values.reduce((sum, value) => sum + value, 0);
+            const idle = values[3] + values[4];
             if (root.previousCpuTotal > 0) {
                 const totalDelta = total - root.previousCpuTotal;
                 const idleDelta = idle - root.previousCpuIdle;
@@ -218,45 +245,103 @@ Scope {
         }
     }
 
-    CommandPoll {
-        command: ["cat", "/sys/bus/pci/devices/0000:03:00.0/gpu_busy_percent"]
+    FileView {
+        id: gpuFile
+        path: "/sys/bus/pci/devices/0000:03:00.0/gpu_busy_percent"
 
-        onUpdated: text => {
-            const value = Number(text);
+        onLoaded: {
+            const value = Number(text().trim());
             if (Number.isFinite(value))
                 root.gpuPercent = Math.round(value);
         }
     }
 
-    CommandPoll {
-        command: ["sh", "-c", "awk '/MemTotal/{total=$2} /MemAvailable/{available=$2} END { printf \"%.0f\", 100*(total-available)/total }' /proc/meminfo"]
+    FileView {
+        id: memoryFile
+        path: "/proc/meminfo"
 
-        onUpdated: text => {
-            const value = Number(text);
-            if (Number.isFinite(value))
-                root.memoryPercent = Math.round(value);
+        onLoaded: {
+            const totalMatch = text().match(/^MemTotal:\s+(\d+)/m);
+            const availableMatch = text().match(/^MemAvailable:\s+(\d+)/m);
+            if (!totalMatch || !availableMatch)
+                return;
+            const total = Number(totalMatch[1]);
+            const available = Number(availableMatch[1]);
+            if (total <= 0)
+                return;
+            const percent = 100 * (total - available) / total;
+            // Match awk printf's rounding, including ties to even.
+            const floor = Math.floor(percent);
+            root.memoryPercent = percent - floor === 0.5
+                ? floor + (floor % 2) : Math.round(percent);
         }
     }
 
-    CommandPoll {
-        interval: 1500
+    function refreshHyprClients(): void {
+        root.hyprClientsRefreshPending = true;
+        clientsRefreshTimer.restart();
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (["openwindow", "closewindow", "movewindow", "movewindowv2",
+                 "windowtitle", "windowtitlev2", "windowclass", "windowclassv2",
+                 "activewindow", "activewindowv2", "moveworkspace",
+                 "moveworkspacev2", "configreloaded"].includes(event.name))
+                root.refreshHyprClients();
+        }
+    }
+
+    Timer {
+        interval: 10000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.refreshHyprClients()
+    }
+
+    Timer {
+        id: clientsRefreshTimer
+        interval: 80
+        onTriggered: {
+            if (!clientsProcess.running) {
+                root.hyprClientsRefreshPending = false;
+                clientsProcess.running = true;
+            }
+        }
+    }
+
+    Process {
+        id: clientsProcess
         command: ["hyprctl", "-j", "clients"]
+        onExited: {
+            if (root.hyprClientsRefreshPending)
+                clientsRefreshTimer.restart();
+        }
 
-        onUpdated: text => {
-            const value = root.parseJson(text, null);
-            if (!Array.isArray(value))
-                return;
+        stdout: StdioCollector {
+            waitForEnd: true
+            onStreamFinished: {
+                const value = root.parseJson(text, null);
+                if (!Array.isArray(value))
+                    return;
 
-            if (value.length === 0) {
-                root.hyprEmptyClientPolls++;
-                if (root.hyprEmptyClientPolls >= 2) {
-                    root.hyprClients = [];
+                if (value.length === 0) {
+                    root.hyprEmptyClientPolls++;
+                    if (root.hyprEmptyClientPolls >= 2) {
+                        root.hyprClients = [];
+                        root.hyprClientsReady = true;
+                    } else {
+                        // Confirm an empty result promptly, rather than waiting 10s.
+                        root.refreshHyprClients();
+                    }
+                } else {
+                    root.hyprEmptyClientPolls = 0;
+                    root.hyprClients = value;
                     root.hyprClientsReady = true;
                 }
-            } else {
-                root.hyprEmptyClientPolls = 0;
-                root.hyprClients = value;
-                root.hyprClientsReady = true;
             }
         }
     }
@@ -290,6 +375,8 @@ Scope {
 
     CommandPoll {
         interval: 5000
+        enabled: root.needsPrismIcons
+        onEnabledChanged: { if (enabled) refresh(); }
         command: [root.helperDir + "/get-prism-instance-icons.py"]
 
         onUpdated: text => {
@@ -301,6 +388,8 @@ Scope {
 
     CommandPoll {
         interval: 2000
+        enabled: root.needsSteamIcons
+        onEnabledChanged: { if (enabled) refresh(); }
         // Steam exports the authoritative app ID into each game process.
         command: [root.helperDir + "/get-steam-app-icons.py"]
 
@@ -311,13 +400,43 @@ Scope {
         }
     }
 
+    Process {
+        id: vpnListener
+        command: ["mullvad", "status", "-j", "listen"]
+        running: true
+
+        stdout: SplitParser {
+            onRead: data => {
+                const value = root.parseJson(data, null);
+                if (value && typeof value.state === "string") {
+                    root.vpnState = value.state;
+                    root.vpnListenerReady = true;
+                }
+            }
+        }
+
+        onExited: {
+            root.vpnListenerReady = false;
+            vpnPoll.refresh();
+            vpnRetryTimer.restart();
+        }
+    }
+
+    Timer {
+        id: vpnRetryTimer
+        interval: 10000
+        onTriggered: vpnListener.running = true
+    }
+
     CommandPoll {
         id: vpnPoll
+        enabled: !root.vpnListenerReady
         interval: 5000
         command: ["sh", "-c", "mullvad status -j 2>/dev/null | jq -r '.state // \"disconnected\"'"]
 
         onUpdated: text => {
-            root.vpnState = text || "disconnected";
+            if (!root.vpnListenerReady)
+                root.vpnState = text || "disconnected";
         }
     }
 
