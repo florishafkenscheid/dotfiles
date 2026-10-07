@@ -735,7 +735,7 @@ Scope {
                                     ? root.theme.foreground
                                     : root.theme.foregroundMuted
                                 horizontalAlignment: Text.AlignRight
-                                elide: Text.ElideLeft
+                                elide: Text.ElideRight
                                 font.family: root.theme.fontFamily
                                 font.pixelSize: 20
 
@@ -749,7 +749,7 @@ Scope {
                                 text: root.mediaData.artist
                                 color: root.theme.foregroundMuted
                                 horizontalAlignment: Text.AlignRight
-                                elide: Text.ElideLeft
+                                elide: Text.ElideRight
                                 visible: text.length > 0
                                 font.family: root.theme.fontFamily
                                 font.pixelSize: 16
