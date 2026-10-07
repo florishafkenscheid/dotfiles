@@ -287,6 +287,10 @@ case "${1:-}" in
             printf '}\n'
         } >"$zen_tmp"
 
+        # Generate every Codex palette and select this theme for new sessions.
+        # The helper preserves unrelated user settings in config.toml.
+        python3 "${config_home}/desktop/codex-theme.py" "$catalog" "$theme_id"
+
         mv -f "$hypr_tmp" "$hypr_file"
         mv -fT "$fastfetch_link_tmp" "$fastfetch_link"
         mv -f "$fastfetch_tmp" "$fastfetch_file"

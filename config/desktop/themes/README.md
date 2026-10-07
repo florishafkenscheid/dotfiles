@@ -17,6 +17,7 @@ small native fragments used by:
 - Mako
 - Rofi
 - Zen Browser
+- Codex CLI
 
 Hyprland and Mako are reloaded immediately. New terminals pick up the generated
 Fastfetch and Starship configs; new Neovim processes read the selected
@@ -26,6 +27,24 @@ recolored underneath active work.
 Zen's existing userChrome loader runs a tiny managed hook that watches the
 generated palette. Installing the hook requires one Zen restart; theme changes
 hot-reload after that.
+
+Codex CLI gets a `blousy-<id>.tmTheme` for every catalog entry under
+`$CODEX_HOME/themes` (default: `~/.codex/themes`). Applying a desktop theme
+updates only `tui.theme` in Codex's `config.toml`, preserving other settings.
+New Codex sessions use the selected palette; existing sessions can select it
+with `/theme`. Theme previews do not change Codex settings. Adding a catalog
+entry automatically adds a Codex palette on the next apply.
+Shell commands use the bright accent and bold text, flags use the main accent,
+quoted strings use the success color, and unquoted arguments use the foreground.
+Shell variable expansions use the bright accent.
+
+The Codex integration requires Python 3.11 or newer. To sync only Codex without
+reloading the desktop, run:
+
+```sh
+python3 ~/.config/desktop/codex-theme.py \
+    ~/.config/desktop/themes/catalog.json "$(~/.config/desktop/theme current)"
+```
 
 Wallpaper paths may use `$HOME`, or are resolved relative to this directory.
 Add another object to the `themes` array to add another card; no QML edits are
