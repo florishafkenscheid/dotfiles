@@ -122,7 +122,8 @@ def discover_hidraw():
 
         score = 1 if is_control_endpoint(descriptor) else 0
         readable = os.access(dev_for_hidraw(hidraw), os.R_OK | os.W_OK)
-        candidates.append((score, int(readable), str(hidraw), hidraw))
+        wired = connection_for_device(hidraw) == "wired"
+        candidates.append((score, int(wired), int(readable), str(hidraw), hidraw))
 
     if not candidates:
         raise RuntimeError("Lamzu Maya X hidraw device not found")
@@ -167,6 +168,7 @@ def read_battery(hidraw):
             "percent": percent,
             "millivolts": 0,
             "raw_mode": raw_mode,
+            "charging": bool(raw_mode),
             "raw_status": percent,
             "icon": icon_for_percent(percent),
             "class": class_for_percent(percent),
@@ -188,7 +190,7 @@ def unavailable(error):
     }
 
 
-def shared_battery():
+def shared_battery(*, fresh=False):
     runtime_dir = Path(
         os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
     )
@@ -212,14 +214,14 @@ def shared_battery():
     with lock_file.open("a+") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
 
-        result = cached(CACHE_FRESH_SECONDS)
+        result = None if fresh else cached(CACHE_FRESH_SECONDS)
         if result is not None:
             return result
 
         try:
             result = read_battery(discover_hidraw())
         except Exception as exc:
-            result = cached(CACHE_FALLBACK_SECONDS)
+            result = None if fresh else cached(CACHE_FALLBACK_SECONDS)
             return result if result is not None else unavailable(exc)
 
         payload = {**result, "updated": time.time()}
