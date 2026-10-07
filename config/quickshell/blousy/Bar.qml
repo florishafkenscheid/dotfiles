@@ -539,8 +539,53 @@ Scope {
                     }
                 }
 
+                Item {
+                    id: workspaceIndicator
+
+                    property bool ready: false
+                    visible: windowStrip.activeItem !== null
+                    x: windowStrip.x + (windowStrip.activeItem ? windowStrip.activeItem.x : 0)
+                    y: windowStrip.y
+                    width: windowStrip.activeItem ? windowStrip.activeItem.width : 0
+                    height: windowStrip.height
+
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.topMargin: 3
+                        anchors.bottomMargin: 9
+                        radius: 9
+                        color: root.theme.accentSoft
+                    }
+
+                    Rectangle {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottom: parent.bottom
+                        width: Math.max(0, parent.width - 12)
+                        height: 2
+                        color: root.theme.accent
+                    }
+
+                    Behavior on x {
+                        enabled: workspaceIndicator.ready
+                        NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+                    }
+
+                    Behavior on width {
+                        enabled: workspaceIndicator.ready
+                        NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+                    }
+                }
+
                 Row {
                     id: windowStrip
+
+                    property Item activeItem: null
+                    onActiveItemChanged: {
+                        if (!activeItem)
+                            workspaceIndicator.ready = false;
+                        else if (!workspaceIndicator.ready)
+                            Qt.callLater(() => { workspaceIndicator.ready = activeItem !== null; });
+                    }
 
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
@@ -553,6 +598,19 @@ Scope {
                             id: hyprWorkspaceItem
 
                             required property var modelData
+                            readonly property bool isActive: modelData.active
+                            onIsActiveChanged: {
+                                if (isActive)
+                                    windowStrip.activeItem = hyprWorkspaceItem;
+                            }
+                            Component.onCompleted: {
+                                if (isActive)
+                                    windowStrip.activeItem = hyprWorkspaceItem;
+                            }
+                            Component.onDestruction: {
+                                if (windowStrip.activeItem === hyprWorkspaceItem)
+                                    windowStrip.activeItem = null;
+                            }
 
                             width: hyprWorkspaceContent.implicitWidth + 24
                             height: 58
@@ -562,23 +620,12 @@ Scope {
                                 anchors.topMargin: 3
                                 anchors.bottomMargin: 9
                                 radius: 9
-                                color: modelData.active
-                                    ? root.theme.accentSoft
-                                    : hyprWorkspaceMouse.containsMouse
-                                        ? root.theme.surfaceHover : "transparent"
+                                color: !hyprWorkspaceItem.isActive && hyprWorkspaceMouse.containsMouse
+                                    ? root.theme.surfaceHover : "transparent"
 
                                 Behavior on color {
-                                    ColorAnimation { duration: 160 }
+                                    ColorAnimation { duration: 160; easing.type: Easing.OutCubic }
                                 }
-                            }
-
-                            Rectangle {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.bottom: parent.bottom
-                                width: parent.width - 12
-                                height: 2
-                                color: modelData.active
-                                    ? root.theme.accent : "transparent"
                             }
 
                             Row {
@@ -595,6 +642,10 @@ Scope {
                                         : root.theme.foregroundMuted
                                     font.family: root.theme.fontFamily
                                     font.pixelSize: 22
+
+                                    Behavior on color {
+                                        ColorAnimation { duration: 180; easing.type: Easing.OutCubic }
+                                    }
                                 }
 
                                 Repeater {
