@@ -67,6 +67,10 @@ with the existing root-targeted `etc` stow workflow.
 - `steam-idle-exit.timer` closes Steam after no game has been active for 5 minutes.
 - Enable it with `systemctl --user enable --now steam-idle-exit.timer` after stowing `config`.
 
+### Shutdown
+- `off` waits until the Lamzu Maya X is plugged in and reports charging (or is already at 100%), then runs `poweroff`.
+- Press `Ctrl+C` during the check to shut down anyway. The check uses a fresh reading from the Quickshell mouse helper.
+
 ## Future
 For when I eventually get sick of this, or I simply want to try out different DE's, WM's, widget systems etc, I am compiling a list of interesting, yet not necessarily related projects to use.
 

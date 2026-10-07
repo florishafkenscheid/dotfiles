@@ -129,7 +129,10 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias zen="zen-browser"
 alias vim="nvim"
-alias off="poweroff"
+unalias off 2>/dev/null
+off() {
+    python3 "${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/blousy/scripts/poweroff-after-mouse.py" "$@"
+}
 alias icat="kitten icat --align left"
 alias cd="z"
 alias ls="exa -lah --no-permissions --no-user --group-directories-last"
