@@ -39,6 +39,7 @@ Scope {
         "icon": "󰂑",
         "class": "unavailable"
     })
+    property var pendingVolumeSteps: []
     property string vpnState: "disconnected"
 
     function parseJson(text, fallback) {
@@ -101,6 +102,17 @@ Scope {
         return apps;
     }
 
+    function normalizedAddress(address) {
+        return String(address || "").toLowerCase().replace(/^0x/, "");
+    }
+
+    function isActiveClient(client) {
+        const active = Hyprland.activeToplevel;
+        const address = normalizedAddress(client.address);
+        return !!active && !!address
+            && address === normalizedAddress(active.address);
+    }
+
     function windowIcon(appId, pid) {
         const minecraftMatch = String(appId || "").match(
             /^minecraft\*?\s*(.*)$/i
@@ -131,12 +143,23 @@ Scope {
     }
 
     function changeVolume(action, value): void {
-        if (!volumeAction.running) {
+        if (action === "scroll") {
+            root.pendingVolumeSteps.push(value);
+            flushVolumeSteps();
+        } else if (!volumeAction.running) {
             const command = [root.helperDir + "/set-volume.sh", action];
             if (value !== undefined)
                 command.push(String(value));
             volumeAction.exec(command);
         }
+    }
+
+    function flushVolumeSteps(): void {
+        if (!volumeAction.running && root.pendingVolumeSteps.length > 0)
+            volumeAction.exec([
+                root.helperDir + "/set-volume.sh", "scroll",
+                root.pendingVolumeSteps.shift()
+            ]);
     }
 
     function toggleVpn(): void {
@@ -157,6 +180,7 @@ Scope {
 
     Process {
         id: volumeAction
+        onExited: root.flushVolumeSteps()
 
         stdout: StdioCollector {
             id: volumeActionOutput
@@ -460,6 +484,8 @@ Scope {
                                     delegate: Item {
                                         required property var modelData
 
+                                        readonly property bool isActive: root.isActiveClient(modelData)
+
                                         width: 28
                                         height: 32
 
@@ -476,13 +502,13 @@ Scope {
                                             sourceSize.width: 26
                                             sourceSize.height: 26
                                             fillMode: Image.PreserveAspectFit
-                                            opacity: modelData.activated ? 1 : 0.72
+                                            opacity: isActive ? 1 : 0.72
                                         }
 
                                         Text {
                                             anchors.centerIn: parent
                                             text: "󰣆"
-                                            color: modelData.activated
+                                            color: isActive
                                                 ? root.theme.accent
                                                 : root.theme.foregroundMuted
                                             visible:
@@ -687,8 +713,15 @@ Scope {
                         Row {
                             id: volumeRow
 
-                            anchors.centerIn: parent
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.horizontalCenterOffset: volumeMouse.containsMouse
+                                ? -(volumeTag.implicitWidth + 9) / 2 : 0
+                            anchors.verticalCenter: parent.verticalCenter
                             spacing: 9
+
+                            Behavior on anchors.horizontalCenterOffset {
+                                NumberAnimation { duration: 170; easing.type: Easing.OutCubic }
+                            }
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -705,26 +738,22 @@ Scope {
                                 font.family: root.theme.monoFontFamily
                                 font.pixelSize: 22
                             }
+                        }
 
-                            Text {
-                                width: volumeMouse.containsMouse ? implicitWidth : 0
-                                opacity: volumeMouse.containsMouse ? 1 : 0
-                                clip: true
-                                text: root.volumeData.target === "player" ? "T" : "S"
-                                color: root.theme.foregroundMuted
-                                font.family: root.theme.monoFontFamily
-                                font.pixelSize: 17
+                        Text {
+                            id: volumeTag
 
-                                Behavior on width {
-                                    NumberAnimation {
-                                        duration: 170
-                                        easing.type: Easing.OutCubic
-                                    }
-                                }
+                            anchors.left: volumeRow.right
+                            anchors.leftMargin: 9
+                            anchors.top: volumeRow.top
+                            opacity: volumeMouse.containsMouse ? 1 : 0
+                            text: root.volumeData.target === "player" ? "T" : "S"
+                            color: root.theme.foregroundMuted
+                            font.family: root.theme.monoFontFamily
+                            font.pixelSize: 17
 
-                                Behavior on opacity {
-                                    NumberAnimation { duration: 140 }
-                                }
+                            Behavior on opacity {
+                                NumberAnimation { duration: 170; easing.type: Easing.OutCubic }
                             }
                         }
 
@@ -744,6 +773,7 @@ Scope {
                     }
 
                     Rectangle {
+                        id: clockDivider
                         anchors.verticalCenter: parent.verticalCenter
                         width: 1
                         height: 34
@@ -751,11 +781,22 @@ Scope {
                     }
 
                     Item {
-                        width: clockBlock.implicitWidth + 20
+                        id: clockContainer
+
+                        readonly property real expandedWidth: clockBlock.implicitWidth + 20
+                        // Center the full hover block between the divider and screen edge.
+                        readonly property real expandedOffset:
+                            (clockDivider.x + clockDivider.width + panel.width
+                                - rightSection.x - expandedWidth) / 2 - x
+
+                        width: clockHours.implicitWidth + 20
                         height: 54
 
                         Rectangle {
-                            anchors.fill: parent
+                            x: clockContainer.expandedOffset
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: clockContainer.expandedWidth
+                            height: parent.height
                             radius: 9
                             color: clockMouse.containsMouse
                                 ? root.theme.surfaceHover : "transparent"
@@ -768,10 +809,18 @@ Scope {
                         Row {
                             id: clockBlock
 
-                            anchors.centerIn: parent
+                            anchors.left: parent.left
+                            anchors.leftMargin: 10 + (clockMouse.containsMouse
+                                ? clockContainer.expandedOffset : 0)
+                            anchors.verticalCenter: parent.verticalCenter
                             spacing: 0
 
+                            Behavior on anchors.leftMargin {
+                                NumberAnimation { duration: 170; easing.type: Easing.OutCubic }
+                            }
+
                             Text {
+                                id: clockHours
                                 text: Qt.formatDateTime(clock.date, "HH:mm")
                                 color: root.theme.foreground
                                 font.family: root.theme.monoFontFamily
@@ -780,23 +829,16 @@ Scope {
                             }
 
                             Text {
+                                id: clockSeconds
                                 text: Qt.formatDateTime(clock.date, ":ss")
                                 color: root.theme.foregroundMuted
-                                width: clockMouse.containsMouse ? implicitWidth : 0
                                 opacity: clockMouse.containsMouse ? 1 : 0
                                 clip: true
                                 font.family: root.theme.monoFontFamily
                                 font.pixelSize: 21
 
-                                Behavior on width {
-                                    NumberAnimation {
-                                        duration: 170
-                                        easing.type: Easing.OutCubic
-                                    }
-                                }
-
                                 Behavior on opacity {
-                                    NumberAnimation { duration: 140 }
+                                    NumberAnimation { duration: 170; easing.type: Easing.OutCubic }
                                 }
                             }
                         }
@@ -804,7 +846,10 @@ Scope {
                         MouseArea {
                             id: clockMouse
 
-                            anchors.fill: parent
+                            x: clockContainer.expandedOffset
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: clockContainer.expandedWidth
+                            height: parent.height
                             hoverEnabled: true
                         }
                     }

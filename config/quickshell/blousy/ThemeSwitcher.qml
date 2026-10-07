@@ -13,7 +13,7 @@ Scope {
     property bool applying: false
     property string errorMessage: ""
     readonly property var targetScreen: Quickshell.screens.find(
-        screen => screen.name === "DP-2"
+        screen => screen.name === root.theme.primaryScreenName
     ) || Quickshell.screens[0]
 
     function open(): void {
@@ -58,7 +58,7 @@ Scope {
         errorMessage = "";
         applyProcess.pendingId = id;
         applyProcess.exec([
-            "/home/blousy/.config/desktop/theme",
+            Quickshell.env("HOME") + "/.config/desktop/theme",
             "apply",
             id
         ]);
@@ -118,7 +118,7 @@ Scope {
         id: overlay
 
         screen: root.targetScreen
-        visible: root.opened
+        visible: root.opened || dimRectangle.opacity > 0
         color: "transparent"
         focusable: true
         exclusionMode: ExclusionMode.Ignore
@@ -136,11 +136,13 @@ Scope {
         WlrLayershell.namespace: "blousy-theme-switcher"
 
         Rectangle {
+            id: dimRectangle
             anchors.fill: parent
             color: "#24000000"
+            opacity: root.opened ? 1 : 0
 
             Behavior on opacity {
-                NumberAnimation { duration: 180 }
+                NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
             }
         }
 
@@ -151,6 +153,7 @@ Scope {
 
         FocusScope {
             id: keySurface
+            visible: root.opened
 
             anchors.fill: parent
             focus: true

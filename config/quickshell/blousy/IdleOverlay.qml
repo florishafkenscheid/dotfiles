@@ -10,7 +10,7 @@ Scope {
 
     property bool active: false
     readonly property var targetScreen: Quickshell.screens.find(
-        screen => screen.name === "DP-2"
+        screen => screen.name === root.theme.primaryScreenName
     ) || Quickshell.screens[0]
 
     IpcHandler {

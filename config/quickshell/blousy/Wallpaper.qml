@@ -52,7 +52,7 @@ Scope {
             property bool frontVisible: true
             property string displayedSource: ""
             property string requestedSource: ""
-            readonly property bool themedOutput: modelData.name === "DP-2"
+            readonly property bool themedOutput: modelData.name === root.theme.primaryScreenName
 
             screen: modelData
             color: themedOutput ? root.theme.backgroundRaised : "#000000"

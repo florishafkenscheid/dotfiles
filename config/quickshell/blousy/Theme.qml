@@ -5,6 +5,7 @@ import Quickshell.Io
 Scope {
     id: root
 
+    property string primaryScreenName: "DP-2"
     property var themes: []
     property string defaultId: "arrakis"
     property string currentId: defaultId
@@ -161,6 +162,22 @@ Scope {
     }
 
     Behavior on foregroundMuted {
+        ColorAnimation { duration: 240; easing.type: Easing.OutCubic }
+    }
+
+    Behavior on accentMuted {
+        ColorAnimation { duration: 240; easing.type: Easing.OutCubic }
+    }
+
+    Behavior on accentSoft {
+        ColorAnimation { duration: 240; easing.type: Easing.OutCubic }
+    }
+
+    Behavior on divider {
+        ColorAnimation { duration: 240; easing.type: Easing.OutCubic }
+    }
+
+    Behavior on surfaceHover {
         ColorAnimation { duration: 240; easing.type: Easing.OutCubic }
     }
 }
